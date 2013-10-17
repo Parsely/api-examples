@@ -1,0 +1,37 @@
+<html>
+    <head>
+        <title>Parse.ly API examples</title>
+        <script src="http://codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
+    </head>
+    <body>
+        <div id="recommendations">Recommendations</div>
+        <script>
+// Parse.ly API root
+var baseUrl = "http://api.parsely.com/v2";
+
+// Publisher specific article URL & API key.
+arstechnica = {
+    url: "http://arstechnica.com/information-technology/2013/10/windows-8-1-what-a-difference-a-year-makes/",
+    apikey: "arstechnica.com"
+}
+
+// Define page element to populate with recommendations.
+var recDiv = $("#recommendations");
+
+// Callback to populate recommendations div.
+callback = function(data) {
+    recDiv.html("");
+    $.each(data.data, function(i, datum) {
+        var thumb = "<div class='thumb'><img src='" + datum.thumb_url_medium + "'></div>",
+            title = "<div class='title'>" + datum.title + "</div>"
+        recDiv.append("<div class='post'>"+title+thumb+"</div>");
+    });
+};
+
+// Build URL for recommendations API request
+var url = baseUrl + "/related?" + $.param(arstechnica) + "&callback=?";
+
+$.getJSON(url, callback);
+        </script>
+    </body>
+</html>
