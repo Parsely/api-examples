@@ -9,5 +9,6 @@ Any of the code samples can be run locally if you have a web server installed.  
 
 1. git clone git@github.com:Parsely/api-examples.git
 1. cd api-examples
-1. `npm install node-static`
+1. Install static file serving module: `npm install node-static`
+1. Start the static file server: `node server.js`
 1. Visit `http://localhost:8080/recommendations` to view the sample.
