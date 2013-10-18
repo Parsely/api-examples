@@ -36,6 +36,7 @@
 
           // Build URL for recommendations API request
           var url = baseUrl + "/related?" + $.param(publisher) + "&callback=?";
+          console.log("Hitting API endpoint:",url);
           $.getJSON(url, callback);
         }
       </script>
