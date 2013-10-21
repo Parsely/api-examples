@@ -16,6 +16,13 @@
           $.getJSON(url, callback);
         }
 
+        // Clears the recommendations div.
+        function clearResults() {
+          var recDiv = $("#recommendations");
+          recDiv[0].innerHTML = "<p>Recommendations results to appear here.</p>";
+          console.log('Reset.');
+        }
+
         function recommendations() {
           var publisher = {
                 apikey: document.getElementById('apiKey').value,
@@ -33,6 +40,7 @@
                       title = "<div class='title'>" + datum.title + "</div>"
                   recDiv.append("<div class='post'>"+title+thumb+"</div>");
               });
+              console.log(data.data);
           };
 
           // Build URL for recommendations API request
@@ -66,14 +74,19 @@
               <input type="text" class="form-control" id="articleUrl" placeholder="http://publisher.com/article/url/here/please">
             </div>
             <button type="button" class="btn btn-success" onClick="recommendations()">Go!</button>
-            <button type="button" class="btn btn-info" onClick="reset()">Reset</button>
+            <button type="button" class="btn btn-info" onClick="clearResults()">Reset</button>
           </form>
-        </div>
-        <!-- div id="api-settings" class="span4" -->
+        </div> <!-- div id="api-settings" class="span4" -->
         <div class="col-md-2">
         </div>
         </div> <!-- row  -->
-      </div>
-      <!-- class="container" -->
+        <div class="row">
+          <div class="col-md-2"></div>
+          <div id="recommendations" class="col-md-8">
+            <p>Recommendations results to appear here.</p>
+          </div>
+          <div class="col-md-2"></div>
+        </div><!-- row  -->
+      </div> <!-- class="container" -->
     </body>
 </html>
