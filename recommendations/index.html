@@ -1,37 +1,81 @@
 <html>
     <head>
         <title>Parse.ly API examples</title>
+        <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
         <script src="http://codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
     </head>
     <body>
-        <div id="recommendations">Recommendations</div>
-        <script>
-// Parse.ly API root
-var baseUrl = "http://api.parsely.com/v2";
+      <script>
+        // Parse.ly API root
+        var baseUrl = "http://api.parsely.com/v2";
 
-// Publisher specific article URL & API key.
-arstechnica = {
-    url: "http://arstechnica.com/information-technology/2013/10/windows-8-1-what-a-difference-a-year-makes/",
-    apikey: "arstechnica.com"
-}
+        function click(url,callback) {
+          console.log("clicked");
+          $.getJSON(url, callback);
+        }
 
-// Define page element to populate with recommendations.
-var recDiv = $("#recommendations");
+        function recommendations() {
+          var publisher = {
+                apikey: document.getElementById('apiKey').value,
+                url: document.getElementById('articleUrl').value
+              }
+          console.log(publisher);
+          // Define page element to populate with recommendations.
+          var recDiv = $("#recommendations");
 
-// Callback to populate recommendations div.
-callback = function(data) {
-    recDiv.html("");
-    $.each(data.data, function(i, datum) {
-        var thumb = "<div class='thumb'><img src='" + datum.thumb_url_medium + "'></div>",
-            title = "<div class='title'>" + datum.title + "</div>"
-        recDiv.append("<div class='post'>"+title+thumb+"</div>");
-    });
-};
+          // Callback to populate recommendations div.
+          callback = function(data) {
+              recDiv.html("");
+              $.each(data.data, function(i, datum) {
+                  var thumb = "<div class='thumb'><img src='" + datum.thumb_url_medium + "'></div>",
+                      title = "<div class='title'>" + datum.title + "</div>"
+                  recDiv.append("<div class='post'>"+title+thumb+"</div>");
+              });
+          };
 
-// Build URL for recommendations API request
-var url = baseUrl + "/related?" + $.param(arstechnica) + "&callback=?";
-
-$.getJSON(url, callback);
-        </script>
+          // Build URL for recommendations API request
+          var url = baseUrl + "/related?" + $.param(publisher) + "&callback=?";
+          console.log("Hitting API endpoint:",url);
+          $.getJSON(url, callback);
+        }
+      </script>
+        <a href="https://github.com/Parsely/api-examples"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
+        <!--  Add Input and buttons -->
+      <div class="container">
+        <div class="page header">
+          <h1>Recommendations Examples</h1>
+          <p class="lead">A test bed for included recommendations on your site.</p> 
+          <small>Note that the <code>/related</code> API endpoint does not require the use of a shared secret.  API key is the only requirement.</small>
+        </div>
+        <!-- page header-->
+        <div class="row"> <!-- row  -->
+        <div class="col-md-2">
+        </div>
+        <div id="api-settings" class="col-md-8">
+          <form role="form">
+            <div class="form-group">
+              <label class="sr-only" for="apiKey">API key</label>
+              <input type="text" class="form-control" id="apiKey" placeholder="API Key">
+            </div>
+            <div class="form-group">
+              <label class="sr-only" for="articleUrl">Article URL</label>
+              <input type="text" class="form-control" id="articleUrl" placeholder="http://publisher.com/article/url/here/please">
+            </div>
+            <button type="button" class="btn btn-default" onClick="recommendations()">Go!</button>
+          </form>
+        </div>
+        <!-- div id="api-settings" class="span4" -->
+        <div class="col-md-2">
+        </div>
+        </div> <!-- row  -->
+        <div class="row">
+          <div class="col-md-2"></div>
+          <div id="recommendations" class="col-md-8">Recommendations</div>
+          <div class="col-md-2"></div>
+        </div><!-- row  -->
+        <!-- row  -->
+      </div>
+      <!-- class="container" -->
     </body>
 </html>
