@@ -2,6 +2,7 @@
     <head>
         <title>Parse.ly API examples</title>
         <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/api.css" rel="stylesheet">
         <script src="http://codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
     </head>
@@ -53,6 +54,8 @@
         <div class="col-md-2">
         </div>
         <div id="api-settings" class="col-md-8">
+            <p>Enter an API key and Article URL to view a set of recommended artciles from the <code>/related</code> endpoint.
+          </p>
           <form role="form">
             <div class="form-group">
               <label class="sr-only" for="apiKey">API key</label>
@@ -62,19 +65,14 @@
               <label class="sr-only" for="articleUrl">Article URL</label>
               <input type="text" class="form-control" id="articleUrl" placeholder="http://publisher.com/article/url/here/please">
             </div>
-            <button type="button" class="btn btn-default" onClick="recommendations()">Go!</button>
+            <button type="button" class="btn btn-success" onClick="recommendations()">Go!</button>
+            <button type="button" class="btn btn-info" onClick="reset()">Reset</button>
           </form>
         </div>
         <!-- div id="api-settings" class="span4" -->
         <div class="col-md-2">
         </div>
         </div> <!-- row  -->
-        <div class="row">
-          <div class="col-md-2"></div>
-          <div id="recommendations" class="col-md-8">Recommendations</div>
-          <div class="col-md-2"></div>
-        </div><!-- row  -->
-        <!-- row  -->
       </div>
       <!-- class="container" -->
     </body>
