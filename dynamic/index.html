@@ -10,24 +10,23 @@
       <script>
         PARSELY = {
           autotrack: false,
-          onload: function() {
-              PublisherNamespace.handleParselyOnload();
-          }
+          onload: TestNamespace.handleParselyOnload
         }
         // Parse.ly API root
-        PublisherNamespace = {
+        TestNamespace = {
           // after PARSELY tracking code loads asynchronously
           handleParselyOnload: function() {
+            console.log('handleParselyOnload called');
             // Send beacon with additional parameter subscription
-            var url = this.href,
-              urlref = location.href,
-              pageView = {
-                url: url,
-                urlref: urlref,
-                js: 1,
-                action_name: "load",
-                subscription: "premium"
-              };
+            var url = document.location.href,
+                urlref = document.location.href,
+                pageView = {
+                  url: url,
+                  urlref: urlref,
+                  js: 1,
+                  action_name: "load",
+                  subscription: "premium"
+                };
             console.log(pageview);
             PARSELY.beacon.trackPageView(pageView);
             return true;
@@ -39,7 +38,7 @@
       <div class="container">
         <div class="page header">
           <h1>Dynamic Beaconing Example</h1>
-          <p class="lead">Demonstration of how to dynamically beacon data to Parsely's servers.</p> 
+          <p class="lead">Demonstration of how to dynamically beacon data to Parsely's servers.</p>
         </div>
       </div> <!-- class="container" -->
       <!-- START Parse.ly Include: Standard -->
