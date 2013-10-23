@@ -8,7 +8,12 @@
     </head>
     <body>
       <script>
-      TestNamespace = {
+        PARSELY = {
+          autotrack: false,
+          onload: TestNamespace.handleParselyOnload
+        }
+        // Parse.ly API root
+        TestNamespace = {
           // after PARSELY tracking code loads asynchronously
           handleParselyOnload: function() {
             console.log('handleParselyOnload called');
@@ -27,12 +32,6 @@
             return true;
           }
         };
-
-        PARSELY = {
-          autotrack: false,
-          onload: TestNamespace.handleParselyOnload
-        };
-
       </script>
         <a href="https://github.com/Parsely/api-examples"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
         <!--  Add Input and buttons -->
