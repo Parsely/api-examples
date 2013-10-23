@@ -36,9 +36,9 @@
           callback = function(data) {
               recDiv.html("");
               $.each(data.data, function(i, datum) {
-                  var thumb = "<div class='thumb'><img src='" + datum.thumb_url_medium + "'></div>",
-                      title = "<div class='title'>" + datum.title + "</div>"
-                  recDiv.append("<div class='post'>"+title+thumb+"</div>");
+                  var thumb = "<a class='pull-left thumbnail' href='"+datum.url+"'><img src='" + datum.thumb_url_medium + "'></a>",
+                      title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
+                  recDiv.append("<div class='media'>"+thumb+title+"</div>");
               });
               console.log(data.data);
           };
