@@ -9,11 +9,7 @@
     <body>
 
       <script>
-        PARSELY = {
-          autotrack: false,
-          onload: TestNamespace.handleParselyOnload
-        }
-        // Parse.ly API root
+      // Parse.ly API root
         TestNamespace = {
           // after PARSELY tracking code loads asynchronously
           handleParselyOnload: function() {
@@ -31,6 +27,11 @@
             PARSELY.beacon.trackPageView(pageView);
             return true;
           }
+        };
+
+        PARSELY = {
+          autotrack: false,
+          onload: TestNamespace.handleParselyOnload
         };
       </script>
 
