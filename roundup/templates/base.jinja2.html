@@ -1,0 +1,26 @@
+{%- set page_title = 'Wrapper' -%}
+<!DOCTYPE html>
+<html lang="en"{% if angular_app_name %} data-ng-app="{{ angular_app_name }}"{% endif %}>
+    <head>
+        <title>{{ page_title }}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!-- BEGIN SCRIPTS -->
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.1.5/angular.min.js"></script>
+        <!-- <script src="http://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.7.0.js"></script> -->
+        <script src="/static/js/ui-bootstrap-tpls-0.7.0.min.js"></script>
+        <script>
+            var debug = {{ config['DEBUG']|lower }};
+        </script>
+        {% block scripts %}{% endblock %}
+        <!-- END SCRIPTS -->
+
+        <!-- BEGIN CSS -->
+        <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" rel="stylesheet">
+        {% block css %}{% endblock %}
+        <!-- END CSS -->
+    </head>
+    <body>
+        {% block body %}{% endblock %}
+    </body>
+</html>
