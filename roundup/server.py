@@ -36,9 +36,11 @@ def get_top_posts(*args, **kwargs):
 
 @app.route('/top_posts')
 def top_posts():
-    limit = request.args.get('limit') or app.config['NUMBER_OF_POSTS']
-    if isinstance(limit, basestring):
-        limit = int(limit)
+    limit = request.args.get('limit', default=app.config['NUMBER_OF_POSTS'],
+                             type=int)
+    if limit <= 0:
+        limit = app.config['NUMBER_OF_POSTS']
+
     posts = cache.get('top_posts')
     if posts is None:
         posts = get_top_posts(limit=limit)
