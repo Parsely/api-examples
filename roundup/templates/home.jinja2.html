@@ -24,6 +24,11 @@
             <ol id="post_list">
                 <p id="loading" data-ng-show="!firstLoadComplete"><i class="fa fa-refresh fa-spin"></i>&nbsp;Loading...</p>
                 <li class="post" data-ng-repeat="post in posts" data-ng-animate="'animate'">
+
+                    <a class="apikey-logo-link" href="http://{$ post.apikey $}/" target="_blank">
+                        <img class="apikey-logo" width="16" height="16" alt="{$ post.apikey $}" src="{$ post.logo_url $}" data-ng-if="post.logo_url != null" />
+                        <i class="apikey-logo fa fa-square-o" data-ng-if="post.logo_url == null"></i>
+                    </a>
                     <a href="{$ post.url || post.link $}" data-popover="{$ getPopoverText(post) $}"
                      data-popover-trigger="mouseenter" data-popover-placement="top"
                      data-popover-title="{$ post.apikey $}" target="_blank">{$ post.title $}</a>

@@ -16,6 +16,15 @@
 #loading {
     font-size: 21px;
 }
+.apikey-logo-link, .apikey-logo-link:hover {
+    text-decoration: none;
+}
+.apikey-logo {
+    display: inline-block;
+    min-width: 16px;
+    min-height: 16px;
+}
+
 
 /* Animations */
 .animate-enter,

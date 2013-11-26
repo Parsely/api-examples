@@ -21,12 +21,13 @@ def get_top_posts(*args, **kwargs):
     url = '{}/realtime/posts'.format(app.config['PARSELY']['api_base_url'])
     posts = []
 
-    for apikey, secret in app.config['PARSELY']['apikeys']:
+    for apikey, config in app.config['PARSELY']['apikeys'].iteritems():
         kwargs['apikey'] = apikey
-        kwargs['secret'] = secret
+        kwargs['secret'] = config['secret']
         apikey_posts = requests.get(url, params=kwargs).json()['data']
         for post in apikey_posts:
             post['apikey'] = apikey
+            post['logo_url'] = config.get('logo_url')
 
         posts.extend(apikey_posts)
 
