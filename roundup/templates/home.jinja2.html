@@ -12,38 +12,38 @@
 {%- endblock -%}
 
 {% block body %}
-<div class="jumbotron">
-    <div class="container">
-        <h1>Roundup</h1>
-        <p>The fastest rising stories from the {{ config['NETWORK_NAME'] }} network of sites.</p>
-    </div>
-</div>
-<div class="container">
-    <div class="row">
-        <div class="col-md-8 col-md-offset-2"
-         data-ng-controller="PostsController">
-            <ol id="post_list">
-                <p id="loading" data-ng-show="!firstLoadComplete"><i class="fa fa-refresh fa-spin"></i>&nbsp;Loading...</p>
-                <li class="post" data-ng-repeat="post in posts" data-ng-animate="'animate'">
-
-                    <a class="apikey-logo-link" href="http://{$ post.apikey $}/" target="_blank">
-                        <img class="apikey-logo" width="16" height="16" alt="{$ post.apikey $}" data-ng-src="{$ post.logo_url $}" data-ng-if="post.logo_url != null" />
-                        <i class="apikey-logo fa fa-square-o" data-ng-if="post.logo_url == null"></i>
-                    </a>
-                    <a href="{$ post.url || post.link $}" data-popover="{$ getPopoverText(post) $}"
-                     data-popover-trigger="mouseenter" data-popover-placement="top"
-                     data-popover-title="{$ post.apikey $}" target="_blank">{$ post.title $}</a>
-                    <a href="http://www.facebook.com/share.php?u={$ encodeURIComponent(post.url || post.link) $}" target="_blank">
-                        <i class="fa fa-facebook-square"></i>
-                    </a>
-                    <a href="http://www.twitter.com/share?text={$ encodeURIComponent(post.title) $}&url={$ encodeURIComponent(post.url || post.link) $}" target="_blank">
-                        <i class="fa fa-twitter-square"></i>
-                    </a>
-                </li>
-            </ol>
+        <div class="jumbotron">
+            <div class="container">
+                <h1>Roundup</h1>
+                <p>The fastest rising stories from the {{ config['NETWORK_NAME'] }} network of sites.</p>
+            </div>
         </div>
-    </div>
-</div>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2"
+                 data-ng-controller="PostsController">
+                    <ol id="post_list">
+                        <p id="loading" data-ng-show="!firstLoadComplete"><i class="fa fa-refresh fa-spin"></i>&nbsp;Loading...</p>
+                        <li class="post" data-ng-repeat="post in posts" data-ng-animate="'animate'">
 
-<div id="tooltip"></div>
+                            <a class="apikey-logo-link" href="http://{$ post.apikey $}/" target="_blank">
+                                <img class="apikey-logo" width="16" height="16" alt="{$ post.apikey $}" data-ng-src="{$ post.logo_url $}" data-ng-if="post.logo_url != null" />
+                                <i class="apikey-logo fa fa-square-o" data-ng-if="post.logo_url == null"></i>
+                            </a>
+                            <a href="{$ post.url || post.link $}" data-popover="{$ getPopoverText(post) $}"
+                             data-popover-trigger="mouseenter" data-popover-placement="top"
+                             data-popover-title="{$ post.apikey $}" target="_blank">{$ post.title $}</a>
+                            <a href="http://www.facebook.com/share.php?u={$ encodeURIComponent(post.url || post.link) $}" target="_blank">
+                                <i class="fa fa-facebook-square"></i>
+                            </a>
+                            <a href="http://www.twitter.com/share?text={$ encodeURIComponent(post.title) $}&url={$ encodeURIComponent(post.url || post.link) $}" target="_blank">
+                                <i class="fa fa-twitter-square"></i>
+                            </a>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div id="tooltip"></div>
 {% endblock %}
