@@ -1,6 +1,6 @@
-var wrapper = angular.module('wrapper', ['ui.bootstrap']);
+var roundup = angular.module('roundup', ['ui.bootstrap']);
 
-wrapper.config(function($httpProvider, $interpolateProvider, $routeProvider) {
+roundup.config(function($httpProvider, $interpolateProvider, $routeProvider) {
     // Ensure that Django can pick up the requests as XHR for request.is_ajax()
     $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
@@ -9,7 +9,7 @@ wrapper.config(function($httpProvider, $interpolateProvider, $routeProvider) {
     $interpolateProvider.endSymbol('$}');
 });
 
-wrapper.controller('PostsController', function($scope, $http) {
+roundup.controller('PostsController', function($scope, $http) {
     $scope.shouldPoll = true;
     $scope.timeBetweenPolls = 5000;
     $scope.firstLoadComplete = false;
