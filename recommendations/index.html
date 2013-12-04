@@ -6,13 +6,12 @@
         <script src="http://codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
     </head>
-    <body>
+    <body onload="load()">
       <script>
         // Parse.ly API root
         var baseUrl = "http://api.parsely.com/v2";
 
         function click(url,callback) {
-          console.log("clicked");
           $.getJSON(url, callback);
         }
 
@@ -20,7 +19,16 @@
         function clearResults() {
           var recDiv = $("#recommendations");
           recDiv[0].innerHTML = "<p>Recommendations results to appear here.</p>";
-          console.log('Reset.');
+        }
+
+        function strategyCheck() {
+            var strategy = $("#strategy").val();
+            if (strategy === "recency") {
+              $("#click_method_group").addClass("hidden");
+            } else {
+              $("#click_method_group").removeClass("hidden");
+              $("#click_method_group").addClass("show");
+            }
         }
 
         function recommendations() {
@@ -48,6 +56,10 @@
           console.log("Hitting API endpoint:",url);
           $.getJSON(url, callback);
         }
+
+        function load() {
+          strategyCheck();
+        }
       </script>
         <a href="https://github.com/Parsely/api-examples"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
         <!--  Add Input and buttons -->
@@ -64,17 +76,76 @@
         <div id="api-settings" class="col-md-8">
             <p>Enter an API key and Article URL to view a set of recommended artciles from the <code>/related</code> endpoint.
           </p>
-          <form role="form">
+          <form role="form" class="form-horizontal">
+            <h4>Required parameters</h4>
             <div class="form-group">
-              <label class="sr-only" for="apiKey">API key</label>
-              <input type="text" class="form-control" id="apiKey" placeholder="API Key">
+              <label class="col-sm-2 control-label" for="apiKey">API key</label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control" id="apiKey" placeholder="API Key">
+              </div>
             </div>
             <div class="form-group">
-              <label class="sr-only" for="articleUrl">Article URL</label>
-              <input type="text" class="form-control" id="articleUrl" placeholder="http://publisher.com/article/url/here/please">
+              <label class="col-sm-2 control-label" for="articleUrl">Article URL</label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control" id="articleUrl" placeholder="http://publisher.com/article/url/here/please">
+              </div>
             </div>
-            <button type="button" class="btn btn-success" onClick="recommendations()">Go!</button>
-            <button type="button" class="btn btn-info" onClick="clearResults()">Reset</button>
+            <hr>
+            <div class="col-sm-12">
+              <h4>Optional parameters</h4>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="days">days</label>
+              <div class="col-sm-2">
+                <select class="form-control" id="days">
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="limit">limit</label>
+              <div class="col-sm-2">
+                <select class="form-control" id="limit">
+                  <option>5</option>
+                  <option>10</option>
+                  <option>15</option>
+                  <option>25</option>
+                  <option>30</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="strategy">strategy</label>
+              <div class="col-sm-2">
+                <select class="form-control" id="strategy" onchange="strategyCheck()">
+                  <option>recency</option>
+                  <option>click</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" id="click_method_group">
+              <label class="col-sm-2 control-label" for="click_method">click.method</label>
+              <div class="col-sm-2">
+                <select class="form-control" id="click_method">
+                  <option>ref_social</option>
+                  <option>ref_search</option>
+                  <option>ref_internal</option>
+                  <option>ref_parsely</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="col-sm-2">
+              </div>
+              <div class="col-sm-10">
+                <button type="button" class="btn btn-success" onClick="analytics()">Go!</button>
+                <button type="button" class="btn btn-info" onClick="clearResults()">Reset</button>
+              </div>
+            </div>
           </form>
         </div> <!-- div id="api-settings" class="span4" -->
         <div class="col-md-2">
