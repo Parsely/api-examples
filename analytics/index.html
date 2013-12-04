@@ -1,0 +1,128 @@
+<html>
+    <head>
+        <title>Parse.ly API examples - Analytics</title>
+        <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/api.css" rel="stylesheet">
+        <script src="http://codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+      <script>
+        // Parse.ly API root
+        var baseUrl = "http://localhost/v2";
+
+        function click(url,callback) {
+          console.log("clicked");
+          $.getJSON(url, callback);
+        }
+
+        // Clears the analytics div.
+        function clearResults() {
+          var recDiv = $("#posts");
+          recDiv[0].innerHTML = "<p>Posts results to appear here.</p>";
+          console.log('Reset.');
+        }
+
+        function analytics() {
+          var publisher = {
+                apikey: document.getElementById('apiKey').value,
+                url: document.getElementById('articleUrl').value
+              }
+          console.log(publisher);
+          // Define page element to populate with analytics.
+          var recDiv = $("#analytics");
+
+          // Callback to populate analytics div.
+          callback = function(data) {
+              recDiv.html("");
+              $.each(data.data, function(i, datum) {
+                  var thumb = "<a class='pull-left thumbnail' href='"+datum.url+"'><img src='" + datum.thumb_url_medium + "'></a>",
+                      title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
+                  recDiv.append("<div class='media'>"+thumb+title+"</div>");
+              });
+              console.log(data.data);
+          };
+
+          // Build URL for analytics API request
+          var url = baseUrl + "/analytics?" + $.param(publisher) + "&callback=?";
+          console.log("Hitting API endpoint:",url);
+          $.getJSON(url, callback);
+        }
+      </script>
+        <a href="https://github.com/Parsely/api-examples"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
+        <!--  Add Input and buttons -->
+      <div class="container">
+        <div class="page header">
+          <h1>Analytics Examples</h1>
+          <p class="lead">A test bed for including Parse.ly powered analytics on your site.</p> 
+          <small>Note that the <code>/analytics</code> API endpoint does require the use of a shared secret in addition to API key.  You will need to run requests from the web page to a server which will hold the API secret.</small>
+        </div>
+        <!-- page header-->
+        <div class="row"> <!-- row  -->
+        <div class="col-md-2">
+        </div>
+        <div id="api-settings" class="col-md-8">
+            <p>Choose a set of parameters to explore API results from the <code>/analytics</code> endpoint.
+          </p>
+          <form role="form" class="form-horizontal">
+            <h4>Required parameters</h4>
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="apiKey">API key</label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control" id="apiKey" placeholder="API Key">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="articleUrl">Article URL</label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control" id="articleUrl" placeholder="http://publisher.com/article/url/here/please">
+              </div>
+            </div>
+            <hr>
+            <div class="col-sm-12">
+              <h4>Optional parameters</h4>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="days">Days</label>
+              <div class="col-sm-2">
+                <select class="form-control" id="days">
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="col-sm-2">
+              </div>
+              <div class="col-sm-10">
+                <button type="button" class="btn btn-success" onClick="analytics()">Go!</button>
+                <button type="button" class="btn btn-info" onClick="clearResults()">Reset</button>
+              </div>
+            </div>
+          </form>
+        </div> <!-- div id="api-settings" class="span4" -->
+        <div class="col-md-2">
+        </div>
+        </div> <!-- row  -->
+        <div class="row">
+          <div class="col-md-2">
+          </div>
+          <div class="col-md-8">
+              <h4>Results</h4>
+          </div>
+          <div class="col-md-2">
+          </div>
+        </div> <!-- row  -->
+        <div class="row">
+          <div class="col-md-2"></div>
+          <div id="posts" class="col-md-8">
+              <p>Top content <code>/analytics</code> results to appear here.</p>
+          </div>
+          <div class="col-md-2"></div>
+        </div><!-- row  -->
+      </div> <!-- class="container" -->
+    </body>
+</html>
