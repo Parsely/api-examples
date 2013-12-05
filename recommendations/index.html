@@ -29,14 +29,25 @@
               $("#click_method_group").removeClass("hidden");
               $("#click_method_group").addClass("show");
             }
+            console.log("strategy end");
         }
 
         function recommendations() {
-          var publisher = {
+          var days = document.getElementById('days').value,
+              limit = document.getElementById('limit').value,
+              strategy = document.getElementById('strategy').value,
+              click_method = document.getElementById('click_method').value;
+          var params = {
                 apikey: document.getElementById('apiKey').value,
-                url: document.getElementById('articleUrl').value
+                url: document.getElementById('articleUrl').value,
+                days: days,
+                limit: limit,
+                strategy: strategy
               }
-          console.log(publisher);
+          if (strategy == "click") {
+              params.click = { method: click_method};
+          }
+          console.log(params);
           // Define page element to populate with recommendations.
           var recDiv = $("#recommendations");
 
@@ -52,7 +63,7 @@
           };
 
           // Build URL for recommendations API request
-          var url = baseUrl + "/related?" + $.param(publisher) + "&callback=?";
+          var url = baseUrl + "/related?" + $.param(params) + "&callback=?";
           console.log("Hitting API endpoint:",url);
           $.getJSON(url, callback);
         }
@@ -142,7 +153,7 @@
               <div class="col-sm-2">
               </div>
               <div class="col-sm-10">
-                <button type="button" class="btn btn-success" onClick="analytics()">Go!</button>
+                <button type="button" class="btn btn-success" onClick="recommendations()">Go!</button>
                 <button type="button" class="btn btn-info" onClick="clearResults()">Reset</button>
               </div>
             </div>
