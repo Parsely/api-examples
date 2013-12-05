@@ -5,6 +5,7 @@
         <link href="../css/api.css" rel="stylesheet">
         <script src="http://codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+        <script src="../jsl.format.js"></script>
     </head>
     <body onload="load()">
       <script>
@@ -17,8 +18,9 @@
 
         // Clears the recommendations div.
         function clearResults() {
-          var recDiv = $("#recommendations");
-          recDiv[0].innerHTML = "<p>Recommendations results to appear here.</p>";
+          $("#recommendations").html("");
+          $("#recommendationsJSON").val("");
+          $("#apiUrl").val("");
         }
 
         function strategyCheck() {
@@ -29,10 +31,41 @@
               $("#click_method_group").removeClass("hidden");
               $("#click_method_group").addClass("show");
             }
-            console.log("strategy end");
         }
 
         function recommendations() {
+         clearResults();
+         // Get querystring params.
+         var params = buildParams();
+         // Define page element to populate with recommendations.
+          var recDiv = $("#recommendations");
+
+          // Callback to populate recommendations div.
+          callback = function(data) {
+              recDiv.html("");
+              if (data != undefined) {
+                $.each(data.data, function(i, datum) {
+                    var thumb = "<a class='pull-left thumbnail' href='"+datum.url+"'><img src='" + datum.thumb_url_medium + "'></a>",
+                        title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
+                    recDiv.append("<div class='media'>"+thumb+title+"</div>");
+                });
+                console.log(data.data);
+                //$("#recommendationsJSON").val(JSON.stringify(data.data));
+                $("#recommendationsJSON").val(jsl.format.formatJson(JSON.stringify(data.data)));
+              } else {
+                console.log("no API results");
+              }
+          };
+
+          // Build URL for recommendations API request
+          var url = buildUrl(baseUrl,"/related",params) + "&callback=?";
+          console.log("Hitting API endpoint:",url);
+          // Update UI with URL
+          $("#apiUrl").val(url);
+          $.getJSON(url, callback);
+        }
+
+        function buildParams() {
           var days = document.getElementById('days').value,
               limit = document.getElementById('limit').value,
               strategy = document.getElementById('strategy').value,
@@ -48,24 +81,11 @@
               params.click = { method: click_method};
           }
           console.log(params);
-          // Define page element to populate with recommendations.
-          var recDiv = $("#recommendations");
+          return params;
+        }
 
-          // Callback to populate recommendations div.
-          callback = function(data) {
-              recDiv.html("");
-              $.each(data.data, function(i, datum) {
-                  var thumb = "<a class='pull-left thumbnail' href='"+datum.url+"'><img src='" + datum.thumb_url_medium + "'></a>",
-                      title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
-                  recDiv.append("<div class='media'>"+thumb+title+"</div>");
-              });
-              console.log(data.data);
-          };
-
-          // Build URL for recommendations API request
-          var url = baseUrl + "/related?" + $.param(params) + "&callback=?";
-          console.log("Hitting API endpoint:",url);
-          $.getJSON(url, callback);
+        function buildUrl(base, endpoint, params) {
+          return base + "/related" + "?" + $.param(params);
         }
 
         function load() {
@@ -163,12 +183,32 @@
         </div>
         </div> <!-- row  -->
         <div class="row">
-          <div class="col-md-2"></div>
-          <div id="recommendations" class="col-md-8">
-            <p>Recommendations results to appear here.</p>
+          <div class="col-md-2">
           </div>
-          <div class="col-md-2"></div>
-        </div><!-- row  -->
+          <div class="col-md-12">
+            <form role="form" class="form-horizontal">
+              <h4>Results</h4>
+              <div class="form-group">
+                <label class="col-sm-1 control-label" for="apiUrl">API URL</label>
+                <div class="col-sm-11">
+                  <input type="text" class="form-control" id="apiUrl"
+                   placeholder="http://api.parsely.com/v2/...">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-md-1 control-label" for="apiJSON">JSON API Results</label>
+                <div class="col-md-6">
+                  <textarea class="form-control" id="recommendationsJSON" rows="20"></textarea>
+                </div>
+                <div class="col-md-5" id="recommendations">
+                </div>
+              </div>
+
+            </form>
+          </div>
+          <div class="col-md-2">
+          </div>
+ 
       </div> <!-- class="container" -->
     </body>
 </html>
