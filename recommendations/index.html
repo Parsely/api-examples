@@ -93,6 +93,10 @@
 
         function urlChange() {
           var apikey = $("#articleUrl").val().split("/")[2];
+          var dotSplit = apikey.split(".");
+          if (dotSplit[0] == "www") {
+            apikey = dotSplit[1] + "." + dotSplit[2];
+          }
           $("#apiKey").val(apikey);
         }
 
