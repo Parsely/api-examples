@@ -59,8 +59,10 @@
 
           // Build URL for recommendations API request
           strategy = document.getElementById('strategy').value,
+          tag = document.getElementById('tag').value,
+          author = document.getElementById('author').value,
           click_method = document.getElementById('click_method').value;
-          var apiUrl = buildUrl(baseUrl,"/related",params, strategy, click_method);
+          var apiUrl = buildUrl(baseUrl,"/related",params, strategy, click_method, tag, author);
           $("#apiUrl").val(apiUrl);
           var url = apiUrl + "&callback=?";
           console.log("Hitting API endpoint:",url);
@@ -72,18 +74,27 @@
           var days = document.getElementById('days').value,
               limit = document.getElementById('limit').value,
               strategy = document.getElementById('strategy').value,
-              click_method = document.getElementById('click_method').value;
+              page = document.getElementById('page').value;
+              sort = document.getElementById('sort').value;
           var params = {
                 apikey: document.getElementById('apiKey').value,
                 url: document.getElementById('articleUrl').value,
                 days: days,
                 limit: limit,
-                strategy: strategy
+                strategy: strategy,
+                page: page,
+                sort: sort,
               }
           return params;
         }
 
-        function buildUrl(base, endpoint, params, strategy, click_method) {
+        function buildUrl(base, endpoint, params, strategy, click_method, tag, author) {
+          if (tag) {
+            params.tag = tag;
+          }
+          if (author) {
+            params.author = author;
+          }
           var url = base + "/related" + "?" + $.param(params);
           if (strategy == "click") {
             url = url.concat("&click.method="+click_method);
@@ -118,6 +129,7 @@
         </div>
         <div id="api-settings" class="col-md-12">
           <p>Enter an API key and Article URL to view a set of recommended artciles from the <code>/related</code> endpoint.</p>
+          <p>Check the <a href="http://parsely.com/api/api_ref.html#recommendations">API reference</a> for a full explanation of the parameters.</p>
             <form role="form" class="form-horizontal">
               <h4>Required parameters</h4>
               <div class="form-group">
@@ -132,6 +144,12 @@
                   <input type="text" class="form-control" id="apiKey" placeholder="API Key">
                 </div>
               </div>
+              <div class="form-group">
+                <div class="col-sm-12">
+                  <button type="button" class="btn btn-success" onClick="recommendations()">Go!</button>
+                  <button type="button" class="btn btn-info" onClick="clearResults()">Reset</button>
+                </div>
+              </div>
               <hr>
               <div class="col-sm-12">
                 <h4>Optional parameters</h4>
@@ -140,6 +158,28 @@
                 <label class="col-sm-1 control-label" for="days">days</label>
                 <div class="col-sm-2">
                   <select class="form-control" id="days">
+                    <option>1</option>
+                    <option>2</option>
+                    <option selected="selected">3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                    <option>9</option>
+                    <option>10</option>
+                    <option>14</option>
+                    <option>21</option>
+                    <option>28</option>
+                    <option>30</option>
+                    <option>60</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-1 control-label" for="page">page</label>
+                <div class="col-sm-2">
+                  <select class="form-control" id="page">
                     <option>1</option>
                     <option>2</option>
                     <option>3</option>
@@ -152,12 +192,34 @@
                 <label class="col-sm-1 control-label" for="limit">limit</label>
                 <div class="col-sm-2">
                   <select class="form-control" id="limit">
-                    <option>5</option>
+                    <option>1</option>
+                    <option selected="selected">5</option>
                     <option>10</option>
-                    <option>15</option>
-                    <option>25</option>
-                    <option>30</option>
+                    <option>20</option>
+                    <option>40</option>
+                    <option>80</option>
                   </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-1 control-label" for="sort">sort</label>
+                <div class="col-sm-2">
+                  <select class="form-control" id="sort">
+                    <option>score</option>
+                    <option>pub_date</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-1 control-label" for="tag">tag</label>
+                <div class="col-sm-2">
+                  <input type="text" class="form-control" id="tag">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-1 control-label" for="author">author</label>
+                <div class="col-sm-2">
+                  <input type="text" class="form-control" id="author">
                 </div>
               </div>
               <div class="form-group">
@@ -180,19 +242,12 @@
                   </select>
                 </div>
               </div>
-              <div class="form-group">
-                <div class="col-sm-2">
-                </div>
-                <div class="col-sm-10">
-                  <button type="button" class="btn btn-success" onClick="recommendations()">Go!</button>
-                  <button type="button" class="btn btn-info" onClick="clearResults()">Reset</button>
-                </div>
-            </div>
-          </form>
+         </form>
         </div> <!-- div id="api-settings" class="span4" -->
         <div class="col-md-2">
         </div>
         </div> <!-- row  -->
+        <hr>
         <div class="row">
           <div class="col-md-12">
             <form role="form" class="form-horizontal">
