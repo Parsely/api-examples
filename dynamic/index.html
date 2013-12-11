@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Parse.ly API examples - Dynamic Beaconing with Custom Params.</title>
+        <title>Parse.ly API examples - Dynamic Beaconing.</title>
         <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/api.css" rel="stylesheet">
         <script src="http://codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
@@ -14,15 +14,14 @@
           // after PARSELY tracking code loads asynchronously
           handleParselyOnload: function() {
             console.log('handleParselyOnload called');
-            // Send beacon with additional parameter subscription
+            // Send beacon 
             var url = document.location.href,
                 urlref = document.location.href;
             var pageView = {
               url: url,
               urlref: urlref,
               js: 1,
-              action: "pageview",
-              subscription: "premium"
+              action: "pageview"
             };
             PARSELY.beacon.trackPageView(pageView);
             return true;
