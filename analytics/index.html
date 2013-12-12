@@ -5,11 +5,13 @@
         <link href="../css/api.css" rel="stylesheet">
         <script src="http://codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+        <script src="../jsl.format.js"></script>
     </head>
     <body>
       <script>
         // Parse.ly API root
-        var baseUrl = "http://localhost:8080/v2";
+        var baseUrlPublisher = "http://localhost:8080/v2";
+        var baseUrlParsely = "http://api.parsely.com/v2";
 
         function click(url,callback) {
           $.getJSON(url, callback);
@@ -24,30 +26,32 @@
        function analytics() {
          clearResults();
          // Get querystring params.
-         var params = buildParams();
+         var params = buildParams(),
+             type = document.getElementById('type').value;
          // Define page element to populate with analytics.
           var recDiv = $("#analytics");
 
           // Callback to populate analytics div.
           callback = function(data) {
-              recDiv.html("");
-              if (data != undefined) {
-                $.each(data.data, function(i, datum) {
-                    var thumb = "<a class='pull-left thumbnail' href='"+datum.url+"'><img src='" + datum.thumb_url_medium + "'></a>",
-                        title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
-                    recDiv.append("<div class='media'>"+thumb+title+"</div>");
-                });
-                console.log(data.data);
-                //$("#analyticsJSON").val(JSON.stringify(data.data));
-                $("#analyticsJSON").val(jsl.format.formatJson(JSON.stringify(data.data)));
-              } else {
-                console.log("no API results");
-              }
+            recDiv.html("");
+            if (data != undefined) {
+              console.log("API results");
+              $.each(data[0].data, function(i, datum) {
+                console.log('$.each: '+i+' '+datum);
+                var thumb = "<a class='pull-left thumbnail' href='"+datum.url+
+                            "'><img src='" + datum.thumb_url_medium + "'></a>",
+                    title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
+                  recDiv.append("<div class='media'>"+thumb+title+"</div>");
+              });
+              $("#analyticsJSON").val(jsl.format.formatJson(JSON.stringify(data[0].data)));
+            } else {
+              console.log('no API results');
+            }
           };
 
           // Build URL for analytics API request
-          var apiUrl = buildUrl(baseUrl,"/analytics",params);
-          $("#apiUrl").val(apiUrl);
+          var apiUrl = buildUrl(baseUrlPublisher,"/analytics",params,type);
+          $("#apiUrl").val(buildUrl(baseUrlParsely,"/analytics",params,type));
           var url = apiUrl + "&callback=?";
           console.log("Hitting API endpoint:",url);
           // Update UI with URL
@@ -61,6 +65,7 @@
               sort = document.getElementById('sort').value;
           var params = {
                 apikey: document.getElementById('apiKey').value,
+                secret: "XXXXXXXXXXXXXXXXXXXXX",
                 days: days,
                 limit: limit,
                 page: page,
@@ -69,12 +74,13 @@
           return params;
         }
 
-        function buildUrl(base, endpoint, params) {
-          var url = base + "/analytics" + "?" + $.param(params);
+        function buildUrl(base, endpoint, params, type) {
+          var url = base + "/analytics/" + type + "?" + $.param(params);
 /*        if (strategy == "click") {
 pub_date    url = url.concat("&click.method="+click_method);
           }
-*/        return url;
+*/        console.log("buildUrl: url --> " + url);
+          return url;
         }
 
       </script>
@@ -105,9 +111,9 @@ pub_date    url = url.concat("&click.method="+click_method);
               </div>
             </div>
             <div class="form-group">
-              <label class="col-sm-1 control-label" for="days">type</label>
+              <label class="col-sm-1 control-label" for="type">type</label>
               <div class="col-sm-2">
-                <select class="form-control" id="days">
+                <select class="form-control" id="type">
                   <option selected="selected">posts</option>
                   <option>authors</option>
                   <option>sections</option>
