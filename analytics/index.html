@@ -9,45 +9,74 @@
     <body>
       <script>
         // Parse.ly API root
-        var baseUrl = "http://localhost/v2";
+        var baseUrl = "http://localhost:8080/v2";
 
         function click(url,callback) {
-          console.log("clicked");
           $.getJSON(url, callback);
         }
 
         // Clears the analytics div.
         function clearResults() {
-          var recDiv = $("#posts");
-          recDiv[0].innerHTML = "<p>Posts results to appear here.</p>";
-          console.log('Reset.');
+          $("#analytics").html("");
+          $("#analyticsJSON").val("");
         }
 
-        function analytics() {
-          var publisher = {
-                apikey: document.getElementById('apiKey').value,
-                url: document.getElementById('articleUrl').value
-              }
-          console.log(publisher);
-          // Define page element to populate with analytics.
+       function analytics() {
+         clearResults();
+         // Get querystring params.
+         var params = buildParams();
+         // Define page element to populate with analytics.
           var recDiv = $("#analytics");
 
           // Callback to populate analytics div.
           callback = function(data) {
               recDiv.html("");
-              $.each(data.data, function(i, datum) {
-                  var thumb = "<a class='pull-left thumbnail' href='"+datum.url+"'><img src='" + datum.thumb_url_medium + "'></a>",
-                      title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
-                  recDiv.append("<div class='media'>"+thumb+title+"</div>");
-              });
-              console.log(data.data);
+              if (data != undefined) {
+                $.each(data.data, function(i, datum) {
+                    var thumb = "<a class='pull-left thumbnail' href='"+datum.url+"'><img src='" + datum.thumb_url_medium + "'></a>",
+                        title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
+                    recDiv.append("<div class='media'>"+thumb+title+"</div>");
+                });
+                console.log(data.data);
+                //$("#analyticsJSON").val(JSON.stringify(data.data));
+                $("#analyticsJSON").val(jsl.format.formatJson(JSON.stringify(data.data)));
+              } else {
+                console.log("no API results");
+              }
           };
 
           // Build URL for analytics API request
-          var url = baseUrl + "/analytics?" + $.param(publisher) + "&callback=?";
+          var apiUrl = buildUrl(baseUrl,"/analytics",params);
+          $("#apiUrl").val(apiUrl);
+          var url = apiUrl + "&callback=?";
           console.log("Hitting API endpoint:",url);
+          // Update UI with URL
           $.getJSON(url, callback);
         }
+
+        function buildParams() {
+          var days = document.getElementById('days').value,
+              limit = document.getElementById('limit').value,
+              page = document.getElementById('page').value;
+              sort = document.getElementById('sort').value;
+          var params = {
+                apikey: document.getElementById('apiKey').value,
+                days: days,
+                limit: limit,
+                page: page,
+                sort: sort,
+              }
+          return params;
+        }
+
+        function buildUrl(base, endpoint, params) {
+          var url = base + "/analytics" + "?" + $.param(params);
+/*        if (strategy == "click") {
+pub_date    url = url.concat("&click.method="+click_method);
+          }
+*/        return url;
+        }
+
       </script>
         <a href="https://github.com/Parsely/api-examples"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
         <!--  Add Input and buttons -->
@@ -59,33 +88,51 @@
         </div>
         <!-- page header-->
         <div class="row"> <!-- row  -->
-        <div class="col-md-2">
-        </div>
-        <div id="api-settings" class="col-md-8">
+        <div id="api-settings" class="col-md-12">
             <p>Choose a set of parameters to explore API results from the <code>/analytics</code> endpoint.
           </p>
           <form role="form" class="form-horizontal">
             <h4>Required parameters</h4>
             <div class="form-group">
-              <label class="col-sm-2 control-label" for="apiKey">API key</label>
-              <div class="col-sm-10">
-                <input type="text" class="form-control" id="apiKey" placeholder="API Key">
+              <label class="col-sm-1 control-label" for="apiKey">API key</label>
+              <div class="col-sm-2">
+                <select class="form-control" id="apiKey">
+                  <option selected="selected">arstechnica.com</option>
+                  <option>slate.com</option>
+                  <option>theroot.com</option>
+                  <option>space.com</option>
+                </select>
               </div>
             </div>
             <div class="form-group">
-              <label class="col-sm-2 control-label" for="articleUrl">Article URL</label>
-              <div class="col-sm-10">
-                <input type="text" class="form-control" id="articleUrl" placeholder="http://publisher.com/article/url/here/please">
+              <label class="col-sm-1 control-label" for="days">type</label>
+              <div class="col-sm-2">
+                <select class="form-control" id="days">
+                  <option selected="selected">posts</option>
+                  <option>authors</option>
+                  <option>sections</option>
+                  <option>tags</option>
+                </select>
               </div>
             </div>
             <hr>
-            <div class="col-sm-12">
-              <h4>Optional parameters</h4>
-            </div>
+            <h4>Optional parameters</h4>
             <div class="form-group">
-              <label class="col-sm-2 control-label" for="days">Days</label>
+              <label class="col-sm-1 control-label" for="days">Days</label>
               <div class="col-sm-2">
                 <select class="form-control" id="days">
+                  <option>1</option>
+                  <option>2</option>
+                  <option selected="selected">3</option>
+                  <option>4</option>
+                  <option>5</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-1 control-label" for="page">page</label>
+              <div class="col-sm-2">
+                <select class="form-control" id="page">
                   <option>1</option>
                   <option>2</option>
                   <option>3</option>
@@ -94,6 +141,29 @@
                 </select>
               </div>
             </div>
+            <div class="form-group">
+              <label class="col-sm-1 control-label" for="limit">limit</label>
+              <div class="col-sm-2">
+                <select class="form-control" id="limit">
+                  <option>1</option>
+                  <option selected="selected">5</option>
+                  <option>10</option>
+                  <option>20</option>
+                  <option>40</option>
+                  <option>80</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-1 control-label" for="sort">sort</label>
+              <div class="col-sm-2">
+                <select class="form-control" id="sort">
+                  <option selected="selected">_hits</option>
+                  <option>momentum</option>
+                </select>
+              </div>
+            </div>
+ 
             <div class="form-group">
               <div class="col-sm-2">
               </div>
@@ -108,21 +178,26 @@
         </div>
         </div> <!-- row  -->
         <div class="row">
-          <div class="col-md-2">
-          </div>
-          <div class="col-md-8">
+          <div class="col-md-12">
+            <form role="form" class="form-horizontal">
               <h4>Results</h4>
+              <div class="form-group">
+                <label class="col-sm-1 control-label" for="apiUrl">API URL</label>
+                <div class="col-sm-11">
+                  <textarea class="form-control" id="apiUrl" rows="2" ></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-md-1 control-label" for="apiJSON">JSON API Results</label>
+                <div class="col-md-6">
+                  <textarea class="form-control" id="analyticsJSON" rows="20"></textarea>
+                </div>
+                <div class="col-md-5" id="analytics">
+                </div>
+              </div>
+            </form>
           </div>
-          <div class="col-md-2">
-          </div>
-        </div> <!-- row  -->
-        <div class="row">
-          <div class="col-md-2"></div>
-          <div id="posts" class="col-md-8">
-              <p>Top content <code>/analytics</code> results to appear here.</p>
-          </div>
-          <div class="col-md-2"></div>
-        </div><!-- row  -->
-      </div> <!-- class="container" -->
-    </body>
+      </div> <!-- row -->
+    </div> <!-- class="container" -->
+  </body>
 </html>
