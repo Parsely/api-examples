@@ -4,6 +4,7 @@ var http = require('http'),
     util = require('util'),
     querystring = require('querystring'),
     request = require('request'),
+    CREDS = require('config').creds,
     static = require('node-static');
 var file = new(static.Server)('.');
 
@@ -14,6 +15,18 @@ var host = 'localhost',
 
 var baseUrl = "http://api.parsely.com/v2";
 //var baseUrl = "http://localhost:8084/v2";
+//
+
+function getSecret(apikey) {
+  var secret = "";
+  for (var i in CREDS) {
+    key = CREDS[i].apikey;
+    if (apikey == key) {
+      secret = CREDS[i].secret;
+    }
+  }
+  return secret;
+}
 
 function posts() {
   var type = 'posts';
@@ -32,7 +45,7 @@ function posts() {
   //TODO: Change to lookup secret based on API key.
   var creds = {
     apikey: query.apikey,
-    secret: API_SECRET
+    secret: getSecret(query.apikey)
   }
   delete query.apikey;
   delete query.secret; //placeholder secret sent by client
@@ -82,6 +95,37 @@ function posts() {
   });
 }
 
+function apiCallback(err, res, body, that) {
+  if (err) {
+    that.res.writeHead(500, {'Content-Type': 'text/plain' });
+    that.res.end('Error - Derp threshold breach');
+    console.log('request callback error');
+  } else if (res.statusCode == 200 ) {
+    console.log('API RESPONSE');
+    if (body.code > 200) {
+      that.res.writeHead(body.code, {'Content-Type': 'text/plain' });
+      console.log('API RESPONSE FAIL');
+    } else {
+      that.res.writeHead(200, {'Content-Type': 'application/json' });
+      console.log('API RESPONSE SUCCESS');
+      jQuerycallback = jQuery.callback + '([' + body + '])';
+      that.res.end(jQuerycallback);
+      //that.res.end(body);
+      /*
+      console.log('that:');
+      console.log(util.inspect(that));
+      console.log('that.res:');
+      console.log(util.inspect(that.res));
+      */
+      console.log(body);
+    }
+  } else {
+    console.log('API RESPONSE ERROR');
+    that.res.end(body);
+    console.log(body);
+  }
+}
+
 function authors() {
   var type = 'authors';
   var query = url.parse(this.req.url,true).query;
@@ -117,36 +161,8 @@ function authors() {
   console.log('request options: ');
   console.log(options);
   //Make request
-  request(options,function(err,res,body) {
-    if (err) {
-      that.res.writeHead(500, {'Content-Type': 'text/plain' });
-      that.res.end('Error - Derp threshold breach');
-      console.log('request callback error');
-    } else if (res.statusCode == 200 ) {
-      console.log('API RESPONSE');
-      if (body.code > 200) {
-        that.res.writeHead(body.code, {'Content-Type': 'text/plain' });
-        console.log('API RESPONSE FAIL');
-      } else {
-        that.res.writeHead(200, {'Content-Type': 'application/json' });
-        console.log('API RESPONSE SUCCESS');
-        jQuerycallback = jQuery.callback + '([' + body + '])';
-        that.res.end(jQuerycallback);
-        //that.res.end(body);
-        /*
-        console.log('that:');
-        console.log(util.inspect(that));
-        console.log('that.res:');
-        console.log(util.inspect(that.res));
-        */
-        console.log(body);
-      }
-    } else {
-      console.log('API RESPONSE ERROR');
-      that.res.end(body);
-      console.log(body);
-    }
-  });
+  request(options,function(err,res,body,that) {
+ });
 }
 
 
@@ -186,3 +202,6 @@ var serv = http.createServer(function (req, res) {
 console.log('Server running at http://'+host+':'+port);
 console.log('API KEY: '+API_KEY);
 console.log('API SECRET: '+API_SECRET);
+console.log(util.inspect(CREDS));
+console.log(CREDS[0].apikey);
+console.log(CREDS[0].secret);
