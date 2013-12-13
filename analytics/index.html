@@ -19,43 +19,67 @@
 
         // Clears the analytics div.
         function clearResults() {
-          $("#analytics").html("");
-          $("#analyticsJSON").val("");
+          $('#resultsHTML').html("");
+          $('#resultsJSON').val("");
         }
 
-       function analytics() {
-         clearResults();
-         // Get querystring params.
-         var params = buildParams(),
-             type = document.getElementById('type').value;
-         // Define page element to populate with analytics.
-          var recDiv = $("#analytics");
+        // Populate results divs for posts type.
+        function postsCallback(data) {
+          if (data != undefined) {
+            console.log("API results");
+            //Populate resultsHTML
+            $.each(data[0].data, function(i, datum) {
+              console.log('$.each: '+i+' '+datum);
+              var thumb = "<a class='pull-left thumbnail' href='"+datum.url+
+                          "'><img src='" + datum.thumb_url_medium + "'></a>",
+                  title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
+                $('#resultsHTML').append("<div class='media'>"+thumb+title+"</div>");
+            });
+            //Populate resultsJSON
+            $('#resultsJSON').val(jsl.format.formatJson(JSON.stringify(data[0].data)));
+          } else {
+            console.log('no API results');
+          }
+       }
 
-          // Callback to populate analytics div.
-          callback = function(data) {
-            recDiv.html("");
-            if (data != undefined) {
-              console.log("API results");
-              $.each(data[0].data, function(i, datum) {
-                console.log('$.each: '+i+' '+datum);
-                var thumb = "<a class='pull-left thumbnail' href='"+datum.url+
-                            "'><img src='" + datum.thumb_url_medium + "'></a>",
-                    title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
-                  recDiv.append("<div class='media'>"+thumb+title+"</div>");
-              });
-              $("#analyticsJSON").val(jsl.format.formatJson(JSON.stringify(data[0].data)));
-            } else {
-              console.log('no API results');
-            }
-          };
+        // Populate results divs for posts type.
+        function authorsCallback(data) {
+          if (data != undefined) {
+            console.log("API results");
+            //Populate resultsHTML
+            $.each(data[0].data, function(i, datum) {
+              console.log('$.each: '+i+' '+datum);
+              var author = "<h3>" + datum.author + " <small>" + datum._hits + "</small></h3>"
+                $('#resultsHTML').append("<div>"+author+"</div>");
+            });
+            //Populate resultsJSON
+            $('#resultsJSON').val(jsl.format.formatJson(JSON.stringify(data[0].data)));
+          } else {
+            console.log('no API results');
+          }
+        }
+
+        function analytics() {
+
+          clearResults();
+          // Get querystring params.
+          var params = buildParams();
 
           // Build URL for analytics API request
+          var type = document.getElementById('type').value;
           var apiUrl = buildUrl(baseUrlPublisher,"/analytics",params,type);
+          // Update UI with URL
           $("#apiUrl").val(buildUrl(baseUrlParsely,"/analytics",params,type));
           var url = apiUrl + "&callback=?";
           console.log("Hitting API endpoint:",url);
-          // Update UI with URL
-          $.getJSON(url, callback);
+
+          // Choose Callback based on type.
+          if (type == 'posts') { 
+            $.getJSON(url, postsCallback);
+          } else {
+            $.getJSON(url, authorsCallback);
+          };
+
         }
 
         function buildParams() {
@@ -194,11 +218,11 @@ pub_date    url = url.concat("&click.method="+click_method);
                 </div>
               </div>
               <div class="form-group">
-                <label class="col-md-1 control-label" for="apiJSON">JSON API Results</label>
+                <label class="col-md-1 control-label" for="resultsJSON">JSON API Results</label>
                 <div class="col-md-6">
-                  <textarea class="form-control" id="analyticsJSON" rows="20"></textarea>
+                  <textarea class="form-control" id="resultsJSON" rows="20"></textarea>
                 </div>
-                <div class="col-md-5" id="analytics">
+                <div class="col-md-5" id="resultsHTML">
                 </div>
               </div>
             </form>
