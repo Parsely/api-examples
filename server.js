@@ -28,74 +28,14 @@ function getSecret(apikey) {
   return secret;
 }
 
-function posts() {
-  var type = 'posts';
-  var query = url.parse(this.req.url,true).query;
-
-  // Clean off jQuery callback stuff
-  // Don't want to pass that to parsely API.
-  var jQuery =  {
-    callback: query.callback,
-    _: query._
-  }
-  delete query.callback;
-  delete query._;
-
-  //hard coded single-secret
-  //TODO: Change to lookup secret based on API key.
-  var creds = {
-    apikey: query.apikey,
-    secret: getSecret(query.apikey)
-  }
-  delete query.apikey;
-  delete query.secret; //placeholder secret sent by client
-  //credsQs = querystring.stringify(creds);
-  //var qs = credsQs + '&' + querystring.stringify(query);  
-  var qs =  {};
-  for (var i in creds) {qs[i] = creds[i]};
-  for (var i in query) {qs[i] = query[i]};
-
-  // Assemble URI for API request.
-  // TODO: posts is hardcoded.
-  var apiUrl = baseUrl + '/analytics/' + type;
-  var options = { url: apiUrl, qs: qs};
-  var that = this;
-  console.log('request options: ');
-  console.log(options);
-  //Make request
-  request(options,function(err,res,body) {
-    if (err) {
-      that.res.writeHead(500, {'Content-Type': 'text/plain' });
-      that.res.end('Error - Derp threshold breach');
-      console.log('request callback error');
-    } else if (res.statusCode == 200 ) {
-      console.log('API RESPONSE');
-      if (body.code > 200) {
-        that.res.writeHead(body.code, {'Content-Type': 'text/plain' });
-        console.log('API RESPONSE FAIL');
-      } else {
-        that.res.writeHead(200, {'Content-Type': 'application/json' });
-        console.log('API RESPONSE SUCCESS');
-        jQuerycallback = jQuery.callback + '([' + body + '])';
-        that.res.end(jQuerycallback);
-        //that.res.end(body);
-        /*
-        console.log('that:');
-        console.log(util.inspect(that));
-        console.log('that.res:');
-        console.log(util.inspect(that.res));
-        */
-        console.log(body);
-      }
-    } else {
-      console.log('API RESPONSE ERROR');
-      that.res.end(body);
-      console.log(body);
-    }
-  });
+function combine(obj1, obj2) {
+  var obj3 =  {};
+  for (var i in obj1) {obj3[i] = obj1[i]};
+  for (var i in obj2) {obj3[i] = obj2[i]};
+  return obj3;
 }
 
-function apiCallback(err, res, body, that) {
+function apiCallback(err, res, body, that, jQuery) {
   if (err) {
     that.res.writeHead(500, {'Content-Type': 'text/plain' });
     that.res.end('Error - Derp threshold breach');
@@ -126,6 +66,81 @@ function apiCallback(err, res, body, that) {
   }
 }
 
+function analytics(type,dThis) {
+  var query = url.parse(dThis.req.url,true).query;
+
+  // Clean off jQuery callback stuff
+  // Don't want to pass that to parsely API.
+  var jQuery =  {
+    callback: query.callback,
+    _: query._
+  }
+  delete query.callback;
+  delete query._;
+
+  // Lookup secret by apikey in config/default.json
+  var creds = {
+    apikey: query.apikey,
+    secret: getSecret(query.apikey)
+  }
+
+  // Remove credentials from query object
+  delete query.apikey;
+  delete query.secret; //placeholder secret sent by client
+
+  // Combine full credentails and remaining query parameters
+  var qs =  combine(creds,query);
+
+  // Assemble URI for API request.
+  var apiUrl = baseUrl + '/analytics/' + type;
+  var options = { url: apiUrl, qs: qs};
+  var that = dThis;
+  console.log('request options: ');
+  console.log(options);
+  //Make request
+  request(options,function(err,res,body) {
+    apiCallback(err,res,body,that,jQuery);
+  });
+}
+
+function posts() {
+  var type = 'posts';
+  var query = url.parse(this.req.url,true).query;
+
+  // Clean off jQuery callback stuff
+  // Don't want to pass that to parsely API.
+  var jQuery =  {
+    callback: query.callback,
+    _: query._
+  }
+  delete query.callback;
+  delete query._;
+
+  // Lookup secret by apikey in config/default.json
+  var creds = {
+    apikey: query.apikey,
+    secret: getSecret(query.apikey)
+  }
+
+  // Remove credentials from query object
+  delete query.apikey;
+  delete query.secret; //placeholder secret sent by client
+
+  // Combine full credentails and remaining query parameters
+  var qs =  combine(creds,query);
+
+  // Assemble URI for API request.
+  var apiUrl = baseUrl + '/analytics/' + type;
+  var options = { url: apiUrl, qs: qs};
+  var that = this;
+  console.log('request options: ');
+  console.log(options);
+  //Make request
+  request(options,function(err,res,body) {
+    apiCallback(err,res,body,that,jQuery);
+  });
+}
+
 function authors() {
   var type = 'authors';
   var query = url.parse(this.req.url,true).query;
@@ -139,30 +154,23 @@ function authors() {
   delete query.callback;
   delete query._;
 
-  //hard coded single-secret
-  //TODO: Change to lookup secret based on API key.
-  var creds = {
-    apikey: query.apikey,
-    secret: API_SECRET
-  }
+  // Remove credentials from query object
   delete query.apikey;
   delete query.secret; //placeholder secret sent by client
-  //credsQs = querystring.stringify(creds);
-  //var qs = credsQs + '&' + querystring.stringify(query);  
-  var qs =  {};
-  for (var i in creds) {qs[i] = creds[i]};
-  for (var i in query) {qs[i] = query[i]};
+
+  // Combine full credentails and remaining query parameters
+  var qs =  combine(creds,query);
 
   // Assemble URI for API request.
-  // TODO: posts is hardcoded.
   var apiUrl = baseUrl + '/analytics/' + type;
   var options = { url: apiUrl, qs: qs};
   var that = this;
   console.log('request options: ');
   console.log(options);
   //Make request
-  request(options,function(err,res,body,that) {
- });
+  request(options,function(err,res,body) {
+    apiCallback(err,res,body,that,jQuery)
+  });
 }
 
 
