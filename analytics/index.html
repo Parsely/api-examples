@@ -42,7 +42,7 @@
           }
        }
 
-        // Populate results divs for posts type.
+        // Populate results divs for authors type.
         function authorsCallback(data) {
           if (data != undefined) {
             console.log("API results");
@@ -51,6 +51,40 @@
               console.log('$.each: '+i+' '+datum);
               var author = "<h3>" + datum.author + " <small>" + datum._hits + "</small></h3>"
                 $('#resultsHTML').append("<div>"+author+"</div>");
+            });
+            //Populate resultsJSON
+            $('#resultsJSON').val(jsl.format.formatJson(JSON.stringify(data[0].data)));
+          } else {
+            console.log('no API results');
+          }
+        }
+
+        // Populate results divs for sections type.
+        function sectionsCallback(data) {
+          if (data != undefined) {
+            console.log("API results");
+            //Populate resultsHTML
+            $.each(data[0].data, function(i, datum) {
+              console.log('$.each: '+i+' '+datum);
+              var section = "<h3>" + datum.section + " <small>" + datum._hits + "</small></h3>"
+                $('#resultsHTML').append("<div>"+section+"</div>");
+            });
+            //Populate resultsJSON
+            $('#resultsJSON').val(jsl.format.formatJson(JSON.stringify(data[0].data)));
+          } else {
+            console.log('no API results');
+          }
+        }
+
+        // Populate results divs for tags type.
+        function tagsCallback(data) {
+          if (data != undefined) {
+            console.log("API results");
+            //Populate resultsHTML
+            $.each(data[0].data, function(i, datum) {
+              console.log('$.each: '+i+' '+datum);
+              var tag = "<h3>" + datum.tag + " <small>" + datum._hits + "</small></h3>"
+                $('#resultsHTML').append("<div>"+tag+"</div>");
             });
             //Populate resultsJSON
             $('#resultsJSON').val(jsl.format.formatJson(JSON.stringify(data[0].data)));
@@ -76,8 +110,12 @@
           // Choose Callback based on type.
           if (type == 'posts') { 
             $.getJSON(url, postsCallback);
-          } else {
+          } else if (type == 'authors') {
             $.getJSON(url, authorsCallback);
+          } else if (type == 'sections') {
+            $.getJSON(url, sectionsCallback);
+          } else if (type == 'tags') {
+            $.getJSON(url, tagsCallback);
           };
 
         }

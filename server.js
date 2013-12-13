@@ -108,6 +108,16 @@ function posts() {
   analytics(type,this);
 }
 
+function sections() {
+  var type = 'sections';
+  analytics(type,this);
+}
+
+function tags() {
+  var type = 'tags';
+  analytics(type,this);
+}
+
 function authors() {
   var type = 'authors';
   analytics(type,this);
@@ -119,6 +129,12 @@ var router = new director.http.Router({
   '/v2/analytics': {
     '/posts': {
       get: posts
+    },
+    '/sections': {
+      get: sections
+    },
+    '/tags': {
+      get: tags
     },
     '/authors': {
       get: authors
@@ -139,6 +155,8 @@ var serv = http.createServer(function (req, res) {
     // Serve files!
     if (path != '/v2/analytics' &&
         path != '/v2/analytics/posts' &&
+        path != '/v2/analytics/sections' &&
+        path != '/v2/analytics/tags' &&
         path != '/v2/analytics/authors') {
       file.serve(req, res);
     } else {
@@ -152,8 +170,3 @@ var serv = http.createServer(function (req, res) {
   }).resume();
 }).listen(port,host);
 console.log('Server running at http://'+host+':'+port);
-console.log('API KEY: '+API_KEY);
-console.log('API SECRET: '+API_SECRET);
-console.log(util.inspect(CREDS));
-console.log(CREDS[0].apikey);
-console.log(CREDS[0].secret);
