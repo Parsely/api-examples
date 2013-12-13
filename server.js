@@ -105,72 +105,12 @@ function analytics(type,dThis) {
 
 function posts() {
   var type = 'posts';
-  var query = url.parse(this.req.url,true).query;
-
-  // Clean off jQuery callback stuff
-  // Don't want to pass that to parsely API.
-  var jQuery =  {
-    callback: query.callback,
-    _: query._
-  }
-  delete query.callback;
-  delete query._;
-
-  // Lookup secret by apikey in config/default.json
-  var creds = {
-    apikey: query.apikey,
-    secret: getSecret(query.apikey)
-  }
-
-  // Remove credentials from query object
-  delete query.apikey;
-  delete query.secret; //placeholder secret sent by client
-
-  // Combine full credentails and remaining query parameters
-  var qs =  combine(creds,query);
-
-  // Assemble URI for API request.
-  var apiUrl = baseUrl + '/analytics/' + type;
-  var options = { url: apiUrl, qs: qs};
-  var that = this;
-  console.log('request options: ');
-  console.log(options);
-  //Make request
-  request(options,function(err,res,body) {
-    apiCallback(err,res,body,that,jQuery);
-  });
+  analytics(type,this);
 }
 
 function authors() {
   var type = 'authors';
-  var query = url.parse(this.req.url,true).query;
-
-  // Clean off jQuery callback stuff
-  // Don't want to pass that to parsely API.
-  var jQuery =  {
-    callback: query.callback,
-    _: query._
-  }
-  delete query.callback;
-  delete query._;
-
-  // Remove credentials from query object
-  delete query.apikey;
-  delete query.secret; //placeholder secret sent by client
-
-  // Combine full credentails and remaining query parameters
-  var qs =  combine(creds,query);
-
-  // Assemble URI for API request.
-  var apiUrl = baseUrl + '/analytics/' + type;
-  var options = { url: apiUrl, qs: qs};
-  var that = this;
-  console.log('request options: ');
-  console.log(options);
-  //Make request
-  request(options,function(err,res,body) {
-    apiCallback(err,res,body,that,jQuery)
-  });
+  analytics(type,this);
 }
 
 
@@ -194,8 +134,12 @@ var serv = http.createServer(function (req, res) {
   var path = url.parse(req.url,true).pathname;
   console.log('HTTP request: path: '+ path);
   req.addListener('end', function () {
+    // TODO: Fix this sloppy routing to support
+    // API calls & static files.
     // Serve files!
-    if (path != '/v2/analytics' && path != '/v2/analytics/posts') {
+    if (path != '/v2/analytics' &&
+        path != '/v2/analytics/posts' &&
+        path != '/v2/analytics/authors') {
       file.serve(req, res);
     } else {
       router.dispatch(req, res, function(err) {
