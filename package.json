@@ -1,0 +1,30 @@
+{
+  "name": "api-examples",
+  "version": "0.0.0",
+  "description": "Demonstrative uses of the Parse.ly API.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Parsely/api-examples.git"
+  },
+  "keywords": [
+    "analytics",
+    "parsely",
+    "parse.ly"
+  ],
+  "dependencies": {
+    "director": "~1.2.1",
+    "request": "~2.29.0",
+    "config": "~0.4.33",
+    "node-static": "~0.7.2"
+  },
+  "author": "Garrett Wilkin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Parsely/api-examples/issues"
+  }
+}
