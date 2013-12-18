@@ -123,21 +123,28 @@ function authors() {
   analytics(type,this);
 }
 
+function staticServe() {
+  console.log('staticServe in');
+  file.serve(this.req, this.res);
+  console.log('staticServe out');
+}
 
 // define a routing table.
 var router = new director.http.Router({
-  '/v2/analytics': {
-    '/posts': {
-      get: posts
-    },
-    '/sections': {
-      get: sections
-    },
-    '/tags': {
-      get: tags
-    },
-    '/authors': {
-      get: authors
+  '/v2': {
+    '/analytics': {
+      '/posts': {
+        get: posts
+      },
+      '/sections': {
+        get: sections
+      },
+      '/tags': {
+        get: tags
+      },
+      '/authors': {
+        get: authors
+      }
     }
   }
 });
@@ -150,23 +157,18 @@ var serv = http.createServer(function (req, res) {
   var path = url.parse(req.url,true).pathname;
   console.log('HTTP request: path: '+ path);
   req.addListener('end', function () {
-    // TODO: Fix this sloppy routing to support
-    // API calls & static files.
-    // Serve files!
-    if (path != '/v2/analytics' &&
-        path != '/v2/analytics/posts' &&
-        path != '/v2/analytics/sections' &&
-        path != '/v2/analytics/tags' &&
-        path != '/v2/analytics/authors') {
-      file.serve(req, res);
-    } else {
-      router.dispatch(req, res, function(err) {
-        if (err) {
-          res.writeHead(404);
-          res.end()
-        }
-      });
-    }
+    router.dispatch(req, res, function(err) {
+      if (err) {
+        res.writeHead(404);
+        res.end()
+      }
+    });
   }).resume();
-}).listen(port,host);
+});
+
+// Serve static files.
+// For everything that's doesnt match the routing table.
+router.get(/.*/, staticServe);
+
+serv.listen(port,host);
 console.log('Server running at http://'+host+':'+port);
