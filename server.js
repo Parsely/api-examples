@@ -15,7 +15,6 @@ var host = 'localhost',
 
 var baseUrl = "http://api.parsely.com/v2";
 //var baseUrl = "http://localhost:8084/v2";
-//
 
 function getSecret(apikey) {
   var secret = "";
@@ -50,13 +49,6 @@ function apiCallback(err, res, body, that, jQuery) {
       console.log('API RESPONSE SUCCESS');
       jQuerycallback = jQuery.callback + '([' + body + '])';
       that.res.end(jQuerycallback);
-      //that.res.end(body);
-      /*
-      console.log('that:');
-      console.log(util.inspect(that));
-      console.log('that.res:');
-      console.log(util.inspect(that.res));
-      */
       console.log(body);
     }
   } else {
