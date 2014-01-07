@@ -14,7 +14,6 @@ var host = 'localhost',
     API_SECRET = process.env.API_SECRET;
 
 var baseUrl = "http://api.parsely.com/v2";
-//var baseUrl = "http://localhost:8084/v2";
 
 function getSecret(apikey) {
   var secret = "";
@@ -37,7 +36,7 @@ function combine(obj1, obj2) {
 function apiCallback(err, res, body, that, jQuery) {
   if (err) {
     that.res.writeHead(500, {'Content-Type': 'text/plain' });
-    that.res.end('Error - Derp threshold breach');
+    that.res.end('Error');
     console.log('request callback error');
   } else if (res.statusCode == 200 ) {
     console.log('API RESPONSE');
