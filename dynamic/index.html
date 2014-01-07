@@ -13,7 +13,6 @@
         TestNamespace = {
           // after PARSELY tracking code loads asynchronously
           handleParselyOnload: function() {
-            console.log('handleParselyOnload called');
             // Send beacon 
             var url = document.location.href,
                 urlref = document.location.href;
@@ -24,14 +23,41 @@
               action: "pageview"
             };
             PARSELY.beacon.trackPageView(pageView);
+            var nsParselyLoad = new Date();
+            console.log('handleParselyOnload called: ' + prettyTime(nsParselyLoad));
             return true;
           }
         };
 
+        prettyTime = function(date) {
+          return date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() + '.' + date.getMilliseconds();
+        }
+
+        var before = new Date();
+        console.log('Before setting PARSELY object: ' + prettyTime(before));
         PARSELY = {
           autotrack: false,
           onload: TestNamespace.handleParselyOnload
         };
+        var after = new Date();
+        console.log('After setting PARSELY object: ' + prettyTime(after));
+
+        track = function() {
+            var url = this.href,
+                urlref = location.href;
+            PARSELY.beacon.trackPageView({
+                url: url,
+                urlref: urlref,
+                js: 1,
+                action_name: "Next"
+            });
+            var tracked = new Date();
+            console.log('Dynamic track pixel submitted: ' + prettyTime(tracked));
+            return true;
+        }
+        //$("#track").click(track);
+
+
       </script>
 
         <a href="https://github.com/Parsely/api-examples"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
@@ -41,12 +67,25 @@
           <h1>Dynamic Beaconing Example</h1>
           <p class="lead">Demonstration of how to dynamically beacon data to Parsely's servers.</p>
         </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h3>How does this page track page views?</h3>
+            <dl>
+              <dt>On Page Load</dt>
+              <dd>This page disables the Parse.ly JS autotrack setting, and instead creates a callback to be fired on page load.</dd>
+              <dt>On Button Click</dt>
+              <dd>Clicking the button below will trigger a similar tracking event.</dd>
+            </dl>
+            <button id="track" class="btn-primary btn-large" onclick ="track()">Track me!</button>
+            <!-- START Parse.ly Include: Standard -->
+            <div id="parsely-root" style="display: none">
+              <a id="parsely-cfg" data-parsely-site="test.com"
+                 href="http://parsely.com">Powered by the Parse.ly Publisher Platform (P3).</a>
+            
+            </div>
+          </div>
+        </div>
       </div> <!-- class="container" -->
-      <!-- START Parse.ly Include: Standard -->
-      <div id="parsely-root" style="display: none">
-        <a id="parsely-cfg" data-parsely-site="test.com"
-           href="http://parsely.com">Powered by the Parse.ly Publisher Platform (P3).</a>
-      </div>
       <script>
       (function(s, p, d) {
         var h=d.location.protocol, i=p+"-"+s,
@@ -56,6 +95,8 @@
         if (e) return;
         e = d.createElement(s); e.id = i; e.async = true;
         e.src = h+"//"+u+"/p.js"; r.appendChild(e);
+        var bootNow = new Date();
+        console.log('Parsely bootstrap fires: ' + prettyTime(bootNow));
       })("script", "parsely", document);
       </script>
       <!-- END Parse.ly Include: Standard -->
