@@ -1,0 +1,314 @@
+<html>
+    <head>
+        <title>Parse.ly API examples</title>
+        <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/api.css" rel="stylesheet">
+        <script src="http://codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+        <script src="../../jsl.format.js"></script>
+        <!-- START Parse.ly Include: DOM-Free -->
+        <script>
+        jQuery(function() {
+            PARSELY = {"onload": handleParselyOnLoad};
+            (function(d) {
+            var site = "arstechnica.com"
+                b = d.body,
+                e = d.createElement("div");
+            e.innerHTML = '<span id="parsely-cfg" data-parsely-site="'+site+'"></span>';
+            e.id = "parsely-root";
+            e.style.display = "none";
+            b.appendChild(e);
+            })(document);
+            (function(s, p, d) {
+            var h=d.location.protocol, i=p+"-"+s,
+                e=d.getElementById(i), r=d.getElementById(p+"-root"),
+                u=h==="https:"?"d1z2jf7jlzjs58.cloudfront.net"
+                :"static."+p+".com";
+            if (e) return;
+            e = d.createElement(s); e.id = i; e.async = true;
+            e.src = h+"//"+u+"/p.js"; r.appendChild(e);
+            })("script", "parsely", document);
+        });
+        </script>
+        <!-- END Parse.ly Include: DOM-Free -->
+
+    </head>
+    <body onload="">
+      <script>
+        function handleParselyOnLoad() {
+          console.log(PARSELY.config.parsely_site_uuid);
+        // gets a URL for the Parse.ly API
+        function getURL(path, params) {
+            var base = "http://api.parsely.com/v2";
+            var endpoint = base + path + "?" + jQuery.param(params);
+            return endpoint;
+        };
+        var apikey = $("#parsely-cfg").data("parsely-site"),
+            // NOTE: in production, replace with location.href or
+            // other source of canonical URL
+            currentPage = 'http://www.slate.com/blogs/future_tense/2013/05/20/james_rosen_spied_on_his_case_is_even_worse_than_the_ap_reporters.html',
+            // uuid populated from PARSELY JS code
+            uuid = PARSELY.config.parsely_site_uuid,
+            // query parameters for profile to train against
+            profileParams = {
+                apikey: apikey,
+                uuid: uuid,
+                url: currentPage
+            },
+            // query parameters for profile to pull related articles from
+            relatedParams = {
+                apikey: apikey,
+                uuid: uuid,
+                limit: 4,
+                days: 30
+            };
+        // two HTTP requests are made -- one to train the user's profile
+        // and the other to retrieve recommendations for this user
+        jQuery.ajax({
+            dataType: 'jsonp',
+            url: getURL("/profile", profileParams),
+            complete: function profileTrained() {
+                jQuery.ajax({
+                    dataType: 'jsonp',
+                    url: getURL("/related", relatedParams),
+                    success: function relatedArticles(response, textStatus, jqXHR) {
+                        // for each related story, append a link and thumbnail to
+                        // our list of recommendations
+                        jQuery.each(response.data, function(i, item) {
+                            jQuery("#related").append([
+                                '<div class="pslide_thumbnail">',
+                                    '<img src="' + item.thumb_url_medium + '">',
+                                '</div>',
+                                '<div class="pslide_link">',
+                                    '<a href="', item.url, '?cid=pslide_click">',
+                                            item.title,
+                                    '</a>',
+                                '</div>',
+                                '<div style="clear:both;">'
+                            ].join(""));
+                        });
+                    }
+                });
+            }
+        });
+ 
+        };
+        // Parse.ly API root
+        var baseUrl = "http://api.parsely.com/v2";
+
+        function click(url,callback) {
+          $.getJSON(url, callback);
+        }
+
+        // Clears the recommendations div.
+        function clearResults(endpoint) {
+          $("#related").html("");
+          $("#relatedJSON").val("");
+          $("#relatedUrl").val("");
+          $("#search").html("");
+          $("#searchJSON").val("");
+          $("#searchUrl").val("");
+        }
+
+        function go() {
+          console.log('submit()');
+          //recommendations();
+          console.log('no recs()');
+          search();
+          console.log(PARSELY.config.parsely_site_uuid);
+        }
+
+        function search() {
+          console.log('search()');
+        }
+
+        function recommendations() {
+          console.log('recommendations()');
+          clearResults();
+          // Get querystring params.
+          var params = buildParams();
+          // Define page element to populate with recommendations.
+          var recDiv = $("#recommendations");
+
+          // Callback to populate recommendations div.
+          callback = function(data) {
+              recDiv.html("");
+              if (data != undefined) {
+                $.each(data.data, function(i, datum) {
+                    var thumb = "<a class='pull-left thumbnail' href='"+datum.url+"'><img src='" + datum.thumb_url_medium + "'></a>",
+                        title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
+                    recDiv.append("<div class='media'>"+thumb+title+"</div>");
+                });
+                console.log(data.data);
+                //$("#recommendationsJSON").val(JSON.stringify(data.data));
+                $("#recommendationsJSON").val(jsl.format.formatJson(JSON.stringify(data.data)));
+              } else {
+                console.log("no API results");
+              }
+          };
+
+          // Build URL for recommendations API request
+          var apiUrl = buildUrl(baseUrl,"/related",params);
+          $("#apiUrl").val(apiUrl);
+          var url = apiUrl + "&callback=?";
+          console.log("Hitting API endpoint:",url);
+          // Update UI with URL
+          $.getJSON(url, callback);
+        }
+
+        function buildUrl(base, endpoint, params ) {
+          var url = base + endpoint + "?" + $.param(params);
+          return url;
+        }
+
+
+        function buildParams() {
+          var days = document.getElementById('days').value,
+              limit = document.getElementById('limit').value;
+          var params = {
+                apikey: document.getElementById('apiKey').value,
+                days: days,
+                limit: limit
+              };
+          return params;
+        }
+
+        function keyChange() {
+          var apikey = $("#apiKey").val();
+          $("#uuid").val(apikey);
+        }
+
+      </script>
+        <a href="https://github.com/Parsely/api-examples"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
+        <!--  Add Input and buttons -->
+      <div class="container">
+        <div class="page header">
+          <h1>Recommendations Examples - Personalized</h1>
+          <p class="lead">A test bed for including Parse.ly powered <strong>personalized</strong> recommendations on your site.</p> 
+          <p>Note that the use of a shared secret is not required for the endpoints used in this example, which are:
+          </p>
+          <p>
+            <dl>
+              <dt><code>/profile</code></dt>
+              <dd>to train a user profile.</dd>
+              <dt><code>/related</code></dt>
+              <dd>to pull out personalized recommendations</dd>
+              <dt><code>/search</code></dt>
+              <dd>to pull out a list of stories since the last visit</dd>
+            </dl>
+          </p>
+        </div>
+        <!-- page header-->
+        <div class="row"> <!-- row  -->
+        <div class="col-md-2">
+        </div>
+        <div id="api-settings" class="col-md-12">
+          <p>Enter an API key and Article URL to view a set of recommended artciles from the <code>/related</code> endpoint.</p>
+          <p>Check the <a href="http://parsely.com/api/api_ref.html#recommendations">API reference</a> for a full explanation of the parameters.</p>
+            <form role="form" class="form-horizontal">
+              <h4>Required parameters</h4>
+              <div class="form-group">
+                <label class="col-sm-1 control-label" for="apiKey">API key</label>
+                <div class="col-sm-4">
+                  <input type="text" class="form-control" id="apiKey" onchange="keyChange()" placeholder="API Key">
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-sm-12">
+                  <button type="button" class="btn btn-success" onClick="go()">Go!</button>
+                  <button type="button" class="btn btn-info" onClick="clearResults()">Reset</button>
+                </div>
+              </div>
+              <hr>
+              <div class="col-sm-12">
+                <h4>Optional parameters</h4>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-1 control-label" for="days">days</label>
+                <div class="col-sm-2">
+                  <select class="form-control" id="days">
+                    <option>1</option>
+                    <option>2</option>
+                    <option selected="selected">3</option>
+                    <option>4</option>
+                    <option>5</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-1 control-label" for="limit">limit</label>
+                <div class="col-sm-2">
+                  <select class="form-control" id="limit">
+                    <option>1</option>
+                    <option selected="selected">5</option>
+                    <option>10</option>
+                    <option>20</option>
+                    <option>40</option>
+                    <option>80</option>
+                  </select>
+                </div>
+              </div>
+         </form>
+        </div> <!-- div id="api-settings" class="span4" -->
+        <div class="col-md-2">
+        </div>
+        </div> <!-- row  -->
+        <hr>
+        <div class="row">
+          <div class="col-md-12">
+            <form role="form" class="form-horizontal">
+              <h4>Unique User ID</h4>
+              <div class="form-group">
+                <label class="col-sm-1 control-label" for="uuid">UUID</label>
+                <div class="col-sm-11">
+                  <textarea class="form-control" id="uuid" rows="1" ></textarea>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <form role="form" class="form-horizontal">
+              <h4><code>/related</code> Results</h4>
+              <div class="form-group">
+                <label class="col-sm-1 control-label" for="relatedUrl">API URL</label>
+                <div class="col-sm-11">
+                  <textarea class="form-control" id="relatedUrl" rows="2" ></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-md-1 control-label" for="relatedJSON">JSON API Results</label>
+                <div class="col-md-6">
+                  <textarea class="form-control" id="relatedJSON" rows="20"></textarea>
+                </div>
+                <div class="col-md-5" id="related">
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <form role="form" class="form-horizontal">
+              <h4><code>/search</code> Results</h4>
+              <div class="form-group">
+                <label class="col-sm-1 control-label" for="searchUrl">API URL</label>
+                <div class="col-sm-11">
+                  <textarea class="form-control" id="searchUrl" rows="2" ></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-md-1 control-label" for="searchJSON">JSON API Results</label>
+                <div class="col-md-6">
+                  <textarea class="form-control" id="searchJSON" rows="20"></textarea>
+                </div>
+                <div class="col-md-5" id="search">
+                </div>
+              </div>
+            </form>
+          </div>
+      </div> <!-- row -->
+      </div> <!-- class="container" -->
+    </body>
+</html>
