@@ -38,6 +38,7 @@
       <script>
         function handleParselyOnLoad() {
           console.log('handleParselyOnLoad '+PARSELY.config.parsely_site_uuid);
+         $("#uuid").val(PARSELY.config.parsely_site_uuid);
 
         };
         // Parse.ly API root
@@ -181,14 +182,13 @@
           e.async = true;
           e.src = h+"//"+u+"/p.js"; r.appendChild(e);
           })("script", "parsely", document);
-      }
+        }
  
         function keyChange() {
          console.log('keyChange()');
-         $("#uuid").val(PARSELY.config.parsely_site_uuid);
           hitConfig();
         }
-  
+
         function urlChange() {
           var apikey = $("#postUrl").val().split("/")[2];
           var dotSplit = apikey.split(".");
