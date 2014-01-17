@@ -155,7 +155,7 @@
               };
           if (endpoint == '/related') {
             params.limit = document.getElementById('limit').value;
-            params.days = document.getElementById('days').value;
+            params.uuid=PARSELY.config.parsely_site_uuid;
           } else if (endpoint == '/history') {
             params.uuid=PARSELY.config.parsely_site_uuid;
           } else if (endpoint == '/profile') {
