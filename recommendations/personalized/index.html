@@ -39,7 +39,6 @@
         function handleParselyOnLoad() {
           console.log('handleParselyOnLoad '+PARSELY.config.parsely_site_uuid);
          $("#uuid").val(PARSELY.config.parsely_site_uuid);
-
         };
         // Parse.ly API root
         var baseUrl = "http://api.parsely.com/v2";
@@ -53,17 +52,13 @@
           $("#related").html("");
           $("#relatedJSON").val("");
           $("#relatedUrl").val("");
-          $("#search").html("");
-          $("#searchJSON").val("");
-          $("#searchUrl").val("");
         }
 
         function go() {
           console.log('submit()');
           clearResults();
           profile(profileCallback);
-          console.log('PARSELY.config.parsely_site_uuid: '+PARSELY.config.parsely_site_uuid);
-          console.log($("#parsely-cfg").attr("data-parsely-site"));
+          $("#uuid").val(PARSELY.config.parsely_site_uuid);
         }
 
         function profile(callback) {
@@ -79,7 +74,6 @@
           console.log('profileCallback()');
           history(historyCallback);
           related(relatedCallback);
-          search(searchCallback);
         }
 
         function related(callback) {
@@ -124,25 +118,13 @@
           var recDiv = $("#history");
           recDiv.html("");
           if (data != undefined) {
-           /* $.each(data.data, function(i, datum) {
-                var thumb = "<a class='pull-left thumbnail' href='"+datum.url+"'><img src='" + datum.thumb_url_medium + "'></a>",
-                    title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
-                recDiv.append("<div class='media'>"+thumb+title+"</div>");
-            });*/
             console.log(data.data);
             $("#historyJSON").val(jsl.format.formatJson(JSON.stringify(data.data)));
           } else {
             console.log("no API results");
           }
-      }
+        }
  
-        function search(callback) {
-          console.log('search()');
-        }
-
-        searchCallback = function (data) {
-        }
-
         function buildUrl(base, endpoint, params ) {
           var url = base + endpoint + "?" + $.param(params);
           return url;
@@ -215,8 +197,6 @@
               <dd>to inspect the trained user profile.</dd>
               <dt><code>/related</code></dt>
               <dd>to pull out personalized recommendations</dd>
-              <dt><code>/search</code></dt>
-              <dd>to pull out a list of stories since the last visit</dd>
             </dl>
           </p>
           <p>Check the <a href="http://parsely.com/api/api_ref.html#recommendations">API reference</a> for a full explanation of the parameters.</p>
@@ -227,15 +207,15 @@
           <div id="api-settings" class="col-md-6">
             <h4>Required parameters</h4>
             <div class="form-group">
-              <label class="col-md-3 control-label" for="apiKey">API key</label>
-              <div class="col-md-9">
-                <input type="text" class="form-control" id="apiKey" onchange="keyChange()" placeholder="API Key">
-              </div>
-            </div>
-            <div class="form-group">
               <label class="col-md-3 control-label" for="postUrl">Post URL</label>
               <div class="col-md-9">
                 <input type="text" class="form-control" id="postUrl" onchange="urlChange()" placeholder="Post URL">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-md-3 control-label" for="apiKey">API key</label>
+              <div class="col-md-9">
+                <input type="text" class="form-control" id="apiKey" onchange="keyChange()" placeholder="API Key">
               </div>
             </div>
             <div class="form-group">
@@ -333,27 +313,6 @@
             <h5>History</h5>
           </div>
         </div>
-        <div class="row">
-          <div class="col-md-12">
-            <form role="form" class="form-horizontal">
-              <h4><code>/search</code> Results</h4>
-              <div class="form-group">
-                <label class="col-sm-1 control-label" for="searchUrl">API URL</label>
-                <div class="col-sm-11">
-                  <textarea class="form-control" id="searchUrl" rows="2" ></textarea>
-                </div>
-              </div>
-              <div class="form-group">
-                <label class="col-md-1 control-label" for="searchJSON">JSON API Results</label>
-                <div class="col-md-6">
-                  <textarea class="form-control" id="searchJSON" rows="20"></textarea>
-                </div>
-                <div class="col-md-5" id="search">
-                </div>
-              </div>
-            </form>
-          </div>
-      </div> <!-- row -->
       </div> <!-- class="container" -->
     </body>
 </html>
