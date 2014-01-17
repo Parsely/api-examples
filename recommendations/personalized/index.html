@@ -11,6 +11,7 @@
         jQuery(function() {
             PARSELY = {"onload": handleParselyOnLoad};
             (function(d) {
+            // TODO: call this when apikey input is populated.
             var site = "arstechnica.com"
                 b = d.body,
                 e = d.createElement("div");
@@ -43,7 +44,7 @@
             var endpoint = base + path + "?" + jQuery.param(params);
             return endpoint;
         };
-        var apikey = $("#parsely-cfg").data("parsely-site"),
+        var apikey = document.getElementById('apiKey').value,
             // NOTE: in production, replace with location.href or
             // other source of canonical URL
             currentPage = 'http://www.slate.com/blogs/future_tense/2013/05/20/james_rosen_spied_on_his_case_is_even_worse_than_the_ap_reporters.html',
@@ -191,6 +192,8 @@
             <dl>
               <dt><code>/profile</code></dt>
               <dd>to train a user profile.</dd>
+              <dt><code>/history</code></dt>
+              <dd>to inspect the trained user profile.</dd>
               <dt><code>/related</code></dt>
               <dd>to pull out personalized recommendations</dd>
               <dt><code>/search</code></dt>
@@ -268,25 +271,48 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-md-12">
+          <div class="col-md-6">
             <form role="form" class="form-horizontal">
               <h4><code>/related</code> Results</h4>
               <div class="form-group">
-                <label class="col-sm-1 control-label" for="relatedUrl">API URL</label>
-                <div class="col-sm-11">
+                <label class="control-label col-md-3" for="relatedUrl">API URL</label>
+                <div class="col-md-9">
                   <textarea class="form-control" id="relatedUrl" rows="2" ></textarea>
                 </div>
               </div>
               <div class="form-group">
-                <label class="col-md-1 control-label" for="relatedJSON">JSON API Results</label>
-                <div class="col-md-6">
+                <label class="control-label col-md-3" for="relatedJSON">JSON API Results</label>
+                <div class="col-md-9">
                   <textarea class="form-control" id="relatedJSON" rows="20"></textarea>
                 </div>
-                <div class="col-md-5" id="related">
+                <div class="col-md-3" id="related">
+                  <h5>Recommendations</h5>
                 </div>
               </div>
             </form>
           </div>
+          <div class="col-md-6">
+            <form role="form" class="form-horizontal">
+              <h4><code>/history</code> Results</h4>
+              <div class="form-group">
+                <label class="control-label col-md-3" for="historyUrl">API URL</label>
+                <div class="col-md-9">
+                  <textarea class="form-control" id="historyUrl" rows="2" ></textarea>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="control-label col-md-3" for="historyJSON">JSON API Results</label>
+                <div class="col-md-9">
+                  <textarea class="form-control" id="historyJSON" rows="20"></textarea>
+                </div>
+                <div class="col-md-3" id="history">
+                  <h5>History</h5>
+                </div>
+              </div>
+            </form>
+          </div>
+
+
         </div>
         <div class="row">
           <div class="col-md-12">
