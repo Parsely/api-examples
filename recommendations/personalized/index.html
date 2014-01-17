@@ -37,62 +37,64 @@
     <body onload="">
       <script>
         function handleParselyOnLoad() {
-          console.log(PARSELY.config.parsely_site_uuid);
-        // gets a URL for the Parse.ly API
-        function getURL(path, params) {
-            var base = "http://api.parsely.com/v2";
-            var endpoint = base + path + "?" + jQuery.param(params);
-            return endpoint;
-        };
-        var apikey = document.getElementById('apiKey').value,
-            // NOTE: in production, replace with location.href or
-            // other source of canonical URL
-            currentPage = 'http://www.slate.com/blogs/future_tense/2013/05/20/james_rosen_spied_on_his_case_is_even_worse_than_the_ap_reporters.html',
-            // uuid populated from PARSELY JS code
-            uuid = PARSELY.config.parsely_site_uuid,
-            // query parameters for profile to train against
-            profileParams = {
-                apikey: apikey,
-                uuid: uuid,
-                url: currentPage
-            },
-            // query parameters for profile to pull related articles from
-            relatedParams = {
-                apikey: apikey,
-                uuid: uuid,
-                limit: 4,
-                days: 30
-            };
-        // two HTTP requests are made -- one to train the user's profile
-        // and the other to retrieve recommendations for this user
-        jQuery.ajax({
-            dataType: 'jsonp',
-            url: getURL("/profile", profileParams),
-            complete: function profileTrained() {
-                jQuery.ajax({
-                    dataType: 'jsonp',
-                    url: getURL("/related", relatedParams),
-                    success: function relatedArticles(response, textStatus, jqXHR) {
-                        // for each related story, append a link and thumbnail to
-                        // our list of recommendations
-                        jQuery.each(response.data, function(i, item) {
-                            jQuery("#related").append([
-                                '<div class="pslide_thumbnail">',
-                                    '<img src="' + item.thumb_url_medium + '">',
-                                '</div>',
-                                '<div class="pslide_link">',
-                                    '<a href="', item.url, '?cid=pslide_click">',
-                                            item.title,
-                                    '</a>',
-                                '</div>',
-                                '<div style="clear:both;">'
-                            ].join(""));
-                        });
-                    }
-                });
-            }
-        });
- 
+          console.log('handleParselyOnLoad '+PARSELY.config.parsely_site_uuid);
+
+          // Code from rex/pslide.js
+          // gets a URL for the Parse.ly API
+          function getURL(path, params) {
+              var base = "http://api.parsely.com/v2";
+              var endpoint = base + path + "?" + jQuery.param(params);
+              return endpoint;
+          };
+          var apikey = document.getElementById('apiKey').value,
+              // NOTE: in production, replace with location.href or
+              // other source of canonical URL
+              currentPage = 'http://www.slate.com/blogs/future_tense/2013/05/20/james_rosen_spied_on_his_case_is_even_worse_than_the_ap_reporters.html',
+              // uuid populated from PARSELY JS code
+              uuid = PARSELY.config.parsely_site_uuid,
+              // query parameters for profile to train against
+              profileParams = {
+                  apikey: apikey,
+                  uuid: uuid,
+                  url: currentPage
+              },
+              // query parameters for profile to pull related articles from
+              relatedParams = {
+                  apikey: apikey,
+                  uuid: uuid,
+                  limit: 4,
+                  days: 30
+              };
+          // two HTTP requests are made -- one to train the user's profile
+          // and the other to retrieve recommendations for this user
+          jQuery.ajax({
+              dataType: 'jsonp',
+              url: getURL("/profile", profileParams),
+              complete: function profileTrained() {
+                  jQuery.ajax({
+                      dataType: 'jsonp',
+                      url: getURL("/related", relatedParams),
+                      success: function relatedArticles(response, textStatus, jqXHR) {
+                          // for each related story, append a link and thumbnail to
+                          // our list of recommendations
+                          jQuery.each(response.data, function(i, item) {
+                              jQuery("#related").append([
+                                  '<div class="pslide_thumbnail">',
+                                      '<img src="' + item.thumb_url_medium + '">',
+                                  '</div>',
+                                  '<div class="pslide_link">',
+                                      '<a href="', item.url, '?cid=pslide_click">',
+                                              item.title,
+                                      '</a>',
+                                  '</div>',
+                                  '<div style="clear:both;">'
+                              ].join(""));
+                          });
+                      }
+                  });
+              }
+          });
+
         };
         // Parse.ly API root
         var baseUrl = "http://api.parsely.com/v2";
@@ -116,7 +118,8 @@
           //recommendations();
           console.log('no recs()');
           search();
-          console.log(PARSELY.config.parsely_site_uuid);
+          console.log('PARSELY.config.parsely_site_uuid: '+PARSELY.config.parsely_site_uuid);
+          console.log($("#parsely-cfg").attr("data-parsely-site"));
         }
 
         function search() {
@@ -174,11 +177,31 @@
           return params;
         }
 
-        function keyChange() {
+        function hitConfig() {
+          console.log('hitConfig()');
           var apikey = $("#apiKey").val();
-          $("#uuid").val(apikey);
-        }
+          var site = apikey;
+          $("#parsely-cfg").attr("data-parsely-site",site);
+          $("#parsely-script").remove();
 
+          (function(s, p, d) {
+          var h=d.location.protocol, i=p+"-"+s,
+              r=d.getElementById(p+"-root"),
+              u=h==="https:"?"d1z2jf7jlzjs58.cloudfront.net"
+              :"static."+p+".com";
+          var e = d.createElement(s); 
+          e.id = i; 
+          e.async = true;
+          e.src = h+"//"+u+"/p.js"; r.appendChild(e);
+          })("script", "parsely", document);
+      }
+ 
+        function keyChange() {
+         console.log('keyChange()');
+         $("#uuid").val(PARSELY.config.parsely_site_uuid);
+          hitConfig();
+        }
+  
       </script>
         <a href="https://github.com/Parsely/api-examples"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
         <!--  Add Input and buttons -->
