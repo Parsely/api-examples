@@ -115,49 +115,73 @@
 
         function go() {
           console.log('submit()');
-          //recommendations();
-          console.log('no recs()');
-          search();
+          clearResults();
+          related(relatedCallback);
+          search(searchCallback);
+          history(historyCallback);
           console.log('PARSELY.config.parsely_site_uuid: '+PARSELY.config.parsely_site_uuid);
           console.log($("#parsely-cfg").attr("data-parsely-site"));
         }
 
-        function search() {
-          console.log('search()');
-        }
+        // Callback to populate recommendations div.
+        relatedCallback = function(data) {
+            var recDiv = $("#related");
+            recDiv.html("");
+            if (data != undefined) {
+              $.each(data.data, function(i, datum) {
+                  var thumb = "<a class='pull-left thumbnail' href='"+datum.url+"'><img src='" + datum.thumb_url_medium + "'></a>",
+                      title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
+                  recDiv.append("<div class='media'>"+thumb+title+"</div>");
+              });
+              console.log(data.data);
+              //$("#relatedJSON").val(JSON.stringify(data.data));
+              $("#relatedJSON").val(jsl.format.formatJson(JSON.stringify(data.data)));
+            } else {
+              console.log("no API results");
+            }
+        };
 
-        function recommendations() {
-          console.log('recommendations()');
-          clearResults();
-          // Get querystring params.
-          var params = buildParams();
-          // Define page element to populate with recommendations.
-          var recDiv = $("#recommendations");
-
-          // Callback to populate recommendations div.
-          callback = function(data) {
-              recDiv.html("");
-              if (data != undefined) {
-                $.each(data.data, function(i, datum) {
-                    var thumb = "<a class='pull-left thumbnail' href='"+datum.url+"'><img src='" + datum.thumb_url_medium + "'></a>",
-                        title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
-                    recDiv.append("<div class='media'>"+thumb+title+"</div>");
-                });
-                console.log(data.data);
-                //$("#recommendationsJSON").val(JSON.stringify(data.data));
-                $("#recommendationsJSON").val(jsl.format.formatJson(JSON.stringify(data.data)));
-              } else {
-                console.log("no API results");
-              }
-          };
-
-          // Build URL for recommendations API request
+        function related(callback) {
+          console.log('related()');
+          var params = buildParams('/related');
           var apiUrl = buildUrl(baseUrl,"/related",params);
           $("#apiUrl").val(apiUrl);
           var url = apiUrl + "&callback=?";
           console.log("Hitting API endpoint:",url);
-          // Update UI with URL
           $.getJSON(url, callback);
+        }
+
+        function history(callback) {
+          console.log('history()');
+          var params = buildParams('/history');
+          var apiUrl = buildUrl(baseUrl,"/history",params);
+          $("#apiUrl").val(apiUrl);
+          var url = apiUrl + "&callback=?";
+          console.log("Hitting API endpoint:",url);
+          $.getJSON(url, callback);
+        }
+
+        historyCallback = function (data) {
+          var recDiv = $("#history");
+          recDiv.html("");
+          if (data != undefined) {
+           /* $.each(data.data, function(i, datum) {
+                var thumb = "<a class='pull-left thumbnail' href='"+datum.url+"'><img src='" + datum.thumb_url_medium + "'></a>",
+                    title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
+                recDiv.append("<div class='media'>"+thumb+title+"</div>");
+            });*/
+            console.log(data.data);
+            $("#historyJSON").val(jsl.format.formatJson(JSON.stringify(data.data)));
+          } else {
+            console.log("no API results");
+          }
+      }
+ 
+        function search(callback) {
+          console.log('search()');
+        }
+
+        searchCallback = function (data) {
         }
 
         function buildUrl(base, endpoint, params ) {
@@ -166,14 +190,16 @@
         }
 
 
-        function buildParams() {
-          var days = document.getElementById('days').value,
-              limit = document.getElementById('limit').value;
+        function buildParams(endpoint) {
           var params = {
                 apikey: document.getElementById('apiKey').value,
-                days: days,
-                limit: limit
               };
+          if (endpoint == '/related') {
+            params.limit = document.getElementById('limit').value;
+            params.days = document.getElementById('days').value;
+          } else if (endpoint == '/history') {
+            params.uuid=PARSELY.config.parsely_site_uuid;
+          };
           return params;
         }
 
