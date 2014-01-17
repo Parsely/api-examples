@@ -39,62 +39,6 @@
         function handleParselyOnLoad() {
           console.log('handleParselyOnLoad '+PARSELY.config.parsely_site_uuid);
 
-          // Code from rex/pslide.js
-          // gets a URL for the Parse.ly API
-          function getURL(path, params) {
-              var base = "http://api.parsely.com/v2";
-              var endpoint = base + path + "?" + jQuery.param(params);
-              return endpoint;
-          };
-          var apikey = document.getElementById('apiKey').value,
-              // NOTE: in production, replace with location.href or
-              // other source of canonical URL
-              currentPage = 'http://www.slate.com/blogs/future_tense/2013/05/20/james_rosen_spied_on_his_case_is_even_worse_than_the_ap_reporters.html',
-              // uuid populated from PARSELY JS code
-              uuid = PARSELY.config.parsely_site_uuid,
-              // query parameters for profile to train against
-              profileParams = {
-                  apikey: apikey,
-                  uuid: uuid,
-                  url: currentPage
-              },
-              // query parameters for profile to pull related articles from
-              relatedParams = {
-                  apikey: apikey,
-                  uuid: uuid,
-                  limit: 4,
-                  days: 30
-              };
-          // two HTTP requests are made -- one to train the user's profile
-          // and the other to retrieve recommendations for this user
-          jQuery.ajax({
-              dataType: 'jsonp',
-              url: getURL("/profile", profileParams),
-              complete: function profileTrained() {
-                  jQuery.ajax({
-                      dataType: 'jsonp',
-                      url: getURL("/related", relatedParams),
-                      success: function relatedArticles(response, textStatus, jqXHR) {
-                          // for each related story, append a link and thumbnail to
-                          // our list of recommendations
-                          jQuery.each(response.data, function(i, item) {
-                              jQuery("#related").append([
-                                  '<div class="pslide_thumbnail">',
-                                      '<img src="' + item.thumb_url_medium + '">',
-                                  '</div>',
-                                  '<div class="pslide_link">',
-                                      '<a href="', item.url, '?cid=pslide_click">',
-                                              item.title,
-                                      '</a>',
-                                  '</div>',
-                                  '<div style="clear:both;">'
-                              ].join(""));
-                          });
-                      }
-                  });
-              }
-          });
-
         };
         // Parse.ly API root
         var baseUrl = "http://api.parsely.com/v2";
@@ -116,11 +60,35 @@
         function go() {
           console.log('submit()');
           clearResults();
-          related(relatedCallback);
-          search(searchCallback);
-          history(historyCallback);
+          profile(profileCallback);
           console.log('PARSELY.config.parsely_site_uuid: '+PARSELY.config.parsely_site_uuid);
           console.log($("#parsely-cfg").attr("data-parsely-site"));
+        }
+
+        function profile(callback) {
+          console.log('profile()');
+          var params = buildParams("/profile");
+          var apiUrl = buildUrl(baseUrl,"/profile",params);
+          var url = apiUrl + "&callback=?";
+          console.log("Hitting API endpoint:",url);
+          $.getJSON(url, callback);
+        }
+
+        function profileCallback(data) {
+          console.log('profileCallback()');
+          history(historyCallback);
+          related(relatedCallback);
+          search(searchCallback);
+        }
+
+        function related(callback) {
+          console.log('related()');
+          var params = buildParams('/related');
+          var apiUrl = buildUrl(baseUrl,"/related",params);
+          $("#relatedUrl").val(apiUrl);
+          var url = apiUrl + "&callback=?";
+          console.log("Hitting API endpoint:",url);
+          $.getJSON(url, callback);
         }
 
         // Callback to populate recommendations div.
@@ -141,21 +109,11 @@
             }
         };
 
-        function related(callback) {
-          console.log('related()');
-          var params = buildParams('/related');
-          var apiUrl = buildUrl(baseUrl,"/related",params);
-          $("#apiUrl").val(apiUrl);
-          var url = apiUrl + "&callback=?";
-          console.log("Hitting API endpoint:",url);
-          $.getJSON(url, callback);
-        }
-
         function history(callback) {
           console.log('history()');
           var params = buildParams('/history');
           var apiUrl = buildUrl(baseUrl,"/history",params);
-          $("#apiUrl").val(apiUrl);
+          $("#historyUrl").val(apiUrl);
           var url = apiUrl + "&callback=?";
           console.log("Hitting API endpoint:",url);
           $.getJSON(url, callback);
@@ -199,7 +157,10 @@
             params.days = document.getElementById('days').value;
           } else if (endpoint == '/history') {
             params.uuid=PARSELY.config.parsely_site_uuid;
-          };
+          } else if (endpoint == '/profile') {
+            params.uuid=PARSELY.config.parsely_site_uuid;
+            params.url = document.getElementById('postUrl').value;
+          }
           return params;
         }
 
@@ -228,6 +189,15 @@
           hitConfig();
         }
   
+        function urlChange() {
+          var apikey = $("#postUrl").val().split("/")[2];
+          var dotSplit = apikey.split(".");
+          if (dotSplit[0] == "www") {
+            apikey = dotSplit[1] + "." + dotSplit[2];
+          }
+          $("#apiKey").val(apikey);
+        }
+
       </script>
         <a href="https://github.com/Parsely/api-examples"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
         <!--  Add Input and buttons -->
@@ -249,35 +219,37 @@
               <dd>to pull out a list of stories since the last visit</dd>
             </dl>
           </p>
+          <p>Check the <a href="http://parsely.com/api/api_ref.html#recommendations">API reference</a> for a full explanation of the parameters.</p>
         </div>
         <!-- page header-->
         <div class="row"> <!-- row  -->
-        <div class="col-md-2">
-        </div>
-        <div id="api-settings" class="col-md-12">
-          <p>Enter an API key and Article URL to view a set of recommended artciles from the <code>/related</code> endpoint.</p>
-          <p>Check the <a href="http://parsely.com/api/api_ref.html#recommendations">API reference</a> for a full explanation of the parameters.</p>
-            <form role="form" class="form-horizontal">
-              <h4>Required parameters</h4>
-              <div class="form-group">
-                <label class="col-sm-1 control-label" for="apiKey">API key</label>
-                <div class="col-sm-4">
-                  <input type="text" class="form-control" id="apiKey" onchange="keyChange()" placeholder="API Key">
-                </div>
+          <form role="form" class="form-horizontal">
+          <div id="api-settings" class="col-md-6">
+            <h4>Required parameters</h4>
+            <div class="form-group">
+              <label class="col-md-3 control-label" for="apiKey">API key</label>
+              <div class="col-md-9">
+                <input type="text" class="form-control" id="apiKey" onchange="keyChange()" placeholder="API Key">
               </div>
-              <div class="form-group">
-                <div class="col-sm-12">
-                  <button type="button" class="btn btn-success" onClick="go()">Go!</button>
-                  <button type="button" class="btn btn-info" onClick="clearResults()">Reset</button>
-                </div>
+            </div>
+            <div class="form-group">
+              <label class="col-md-3 control-label" for="postUrl">Post URL</label>
+              <div class="col-md-9">
+                <input type="text" class="form-control" id="postUrl" onchange="urlChange()" placeholder="Post URL">
               </div>
-              <hr>
+            </div>
+            <div class="form-group">
               <div class="col-sm-12">
-                <h4>Optional parameters</h4>
+                <button type="button" class="btn btn-success" onClick="go()">Go!</button>
+                <button type="button" class="btn btn-info" onClick="clearResults()">Reset</button>
               </div>
+            </div>
+      </div>
+        <div class="col-md-6">
               <div class="form-group">
-                <label class="col-sm-1 control-label" for="days">days</label>
-                <div class="col-sm-2">
+                <h4>Optional parameters</h4>
+                <label class="col-md-3 control-label" for="days">days</label>
+                <div class="col-md-3">
                   <select class="form-control" id="days">
                     <option>1</option>
                     <option>2</option>
@@ -288,8 +260,8 @@
                 </div>
               </div>
               <div class="form-group">
-                <label class="col-sm-1 control-label" for="limit">limit</label>
-                <div class="col-sm-2">
+                <label class="col-md-3 control-label" for="limit">limit</label>
+                <div class="col-md-3">
                   <select class="form-control" id="limit">
                     <option>1</option>
                     <option selected="selected">5</option>
@@ -300,10 +272,8 @@
                   </select>
                 </div>
               </div>
+          </div>
          </form>
-        </div> <!-- div id="api-settings" class="span4" -->
-        <div class="col-md-2">
-        </div>
         </div> <!-- row  -->
         <hr>
         <div class="row">
@@ -311,8 +281,8 @@
             <form role="form" class="form-horizontal">
               <h4>Unique User ID</h4>
               <div class="form-group">
-                <label class="col-sm-1 control-label" for="uuid">UUID</label>
-                <div class="col-sm-11">
+                <label class="col-md-1 control-label" for="uuid">UUID</label>
+                <div class="col-md-11">
                   <textarea class="form-control" id="uuid" rows="1" ></textarea>
                 </div>
               </div>
@@ -324,18 +294,15 @@
             <form role="form" class="form-horizontal">
               <h4><code>/related</code> Results</h4>
               <div class="form-group">
-                <label class="control-label col-md-3" for="relatedUrl">API URL</label>
+                <label class="control-label col-md-2" for="relatedUrl">API URL</label>
                 <div class="col-md-9">
                   <textarea class="form-control" id="relatedUrl" rows="2" ></textarea>
                 </div>
               </div>
               <div class="form-group">
-                <label class="control-label col-md-3" for="relatedJSON">JSON API Results</label>
+                <label class="control-label col-md-2" for="relatedJSON">JSON API Results</label>
                 <div class="col-md-9">
                   <textarea class="form-control" id="relatedJSON" rows="20"></textarea>
-                </div>
-                <div class="col-md-3" id="related">
-                  <h5>Recommendations</h5>
                 </div>
               </div>
             </form>
@@ -344,24 +311,27 @@
             <form role="form" class="form-horizontal">
               <h4><code>/history</code> Results</h4>
               <div class="form-group">
-                <label class="control-label col-md-3" for="historyUrl">API URL</label>
+                <label class="control-label col-md-2" for="historyUrl">API URL</label>
                 <div class="col-md-9">
                   <textarea class="form-control" id="historyUrl" rows="2" ></textarea>
                 </div>
               </div>
               <div class="form-group">
-                <label class="control-label col-md-3" for="historyJSON">JSON API Results</label>
+                <label class="control-label col-md-2" for="historyJSON">JSON API Results</label>
                 <div class="col-md-9">
                   <textarea class="form-control" id="historyJSON" rows="20"></textarea>
-                </div>
-                <div class="col-md-3" id="history">
-                  <h5>History</h5>
                 </div>
               </div>
             </form>
           </div>
-
-
+        </div>
+        <div class="row">
+          <div class="col-md-6" id="related">
+            <h5>Recommendations</h5>
+          </div>
+          <div class="col-md-6" id="history">
+            <h5>History</h5>
+          </div>
         </div>
         <div class="row">
           <div class="col-md-12">
