@@ -57,6 +57,44 @@ function apiCallback(err, res, body, that, jQuery) {
   }
 }
 
+function shares(type,dThis) {
+  var query = url.parse(dThis.req.url,true).query;
+
+  // Clean off jQuery callback stuff
+  // Don't want to pass that to parsely API.
+  var jQuery =  {
+    callback: query.callback,
+    _: query._
+  }
+  delete query.callback;
+  delete query._;
+
+  // Lookup secret by apikey in config/default.json
+  var creds = {
+    apikey: query.apikey,
+    secret: getSecret(query.apikey)
+  }
+
+  // Remove credentials from query object
+  delete query.apikey;
+  delete query.secret; //placeholder secret sent by client
+
+  // Combine full credentails and remaining query parameters
+  var qs =  combine(creds,query);
+
+  // Assemble URI for API request.
+  var apiUrl = baseUrl + '/analytics/' + type;
+  var options = { url: apiUrl, qs: qs};
+  var that = dThis;
+  console.log('request options: ');
+  console.log(options);
+  //Make request
+  request(options,function(err,res,body) {
+    apiCallback(err,res,body,that,jQuery);
+  });
+}
+
+
 function analytics(type,dThis) {
   var query = url.parse(dThis.req.url,true).query;
 
@@ -99,6 +137,11 @@ function posts() {
   analytics(type,this);
 }
 
+function sharesPosts() {
+  var type = 'posts';
+  shares(type,this);
+}
+
 function sections() {
   var type = 'sections';
   analytics(type,this);
@@ -135,6 +178,11 @@ var router = new director.http.Router({
       },
       '/authors': {
         get: authors
+      }
+    },
+    '/shares': {
+      '/posts': {
+        get: sharesPosts
       }
     }
   }
