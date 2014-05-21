@@ -7,9 +7,15 @@ var http = require('http'),
     CREDS = require('config').creds,
     static = require('node-static');
 var file = new(static.Server)('.');
+var argv = require('yargs')
+    .usage('start a Parse.ly API shim on a specified port.\nUsage: $0')
+    .example('$0 -p 8080', 'start the server on port 8080')
+    .describe('p', 'port')
+    .default('p', '8080')
+    .argv
 
 var host = 'localhost',
-    port = 8080,
+    port = argv.p,
     API_KEY = process.env.API_KEY,
     API_SECRET = process.env.API_SECRET;
 
@@ -154,9 +160,7 @@ function sharesPosts() {
 }
 
 function staticServe() {
-  console.log('staticServe in');
   file.serve(this.req, this.res);
-  console.log('staticServe out');
 }
 
 // define a routing table.
