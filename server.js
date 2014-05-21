@@ -26,6 +26,7 @@ function combine(obj1, obj2) {
   return obj3;
 }
 
+// return results to requestor (browser).
 function apiCallback(err, res, body, that, jQuery) {
   if (err) {
     that.res.writeHead(500, {'Content-Type': 'text/plain' });
@@ -87,7 +88,7 @@ function shares(type,dThis) {
   });
 }
 
-
+// Pass API call from web client along to parsely API server.
 function analytics(type,dThis) {
   var query = url.parse(dThis.req.url,true).query;
 
@@ -125,29 +126,31 @@ function analytics(type,dThis) {
   });
 }
 
-function posts() {
+// TODO having a function here for each second level URL value 
+// [posts, sections, tags, authors] might be an anti-pattern.
+function analyticsPosts() {
   var type = 'posts';
+  analytics(type,this);
+}
+
+function analyticsSections() {
+  var type = 'sections';
+  analytics(type,this);
+}
+
+function analyticsTags() {
+  var type = 'tags';
+  analytics(type,this);
+}
+
+function analyticsAuthors() {
+  var type = 'authors';
   analytics(type,this);
 }
 
 function sharesPosts() {
   var type = 'posts';
   shares(type,this);
-}
-
-function sections() {
-  var type = 'sections';
-  analytics(type,this);
-}
-
-function tags() {
-  var type = 'tags';
-  analytics(type,this);
-}
-
-function authors() {
-  var type = 'authors';
-  analytics(type,this);
 }
 
 function staticServe() {
@@ -161,16 +164,16 @@ var router = new director.http.Router({
   '/v2': {
     '/analytics': {
       '/posts': {
-        get: posts
+        get: analyticsPosts
       },
       '/sections': {
-        get: sections
+        get: analyticsSections
       },
       '/tags': {
-        get: tags
+        get: analyticsTags
       },
       '/authors': {
-        get: authors
+        get: analyticsAuthors
       }
     },
     '/shares': {
