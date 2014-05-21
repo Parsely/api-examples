@@ -104,6 +104,7 @@ function analytics(type,dThis) {
     callback: query.callback,
     _: query._
   }
+  console.log('analytics jQuery: ', util.inspect(jQuery,false,2,true));
   delete query.callback;
   delete query._;
 
@@ -150,6 +151,7 @@ function analyticsTags() {
 }
 
 function analyticsAuthors() {
+  console.log('analytics authors');
   var type = 'authors';
   analytics(type,this);
 }

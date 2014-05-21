@@ -14,27 +14,41 @@
          $("#uuid").val(PARSELY.config.parsely_site_uuid);
         };
         // Parse.ly API root
-        var baseUrl = "http://api.parsely.com/v2";
+        //var baseUrl = "http://api.parsely.com/v2";
+        var baseUrl = "http://localhost:9090/v2";
 
         function click(url,callback) {
           $.getJSON(url, callback);
         }
 
-        function buildParams(endpoint) {
-          var params = {
-                apikey: document.getElementById('apiKey').value,
-              };
-          if (endpoint == '/related') {
-            params.limit = document.getElementById('limit').value;
-            params.uuid=PARSELY.config.parsely_site_uuid;
-          } else if (endpoint == '/history') {
-            params.uuid=PARSELY.config.parsely_site_uuid;
-          } else if (endpoint == '/profile') {
-            params.uuid=PARSELY.config.parsely_site_uuid;
-            params.url = document.getElementById('postUrl').value;
-          }
-          return params;
+        function buildUrl(base, type, params) {
+          var url = base + "/analytics/" + type + "?" + $.param(params);
+          console.log("buildUrl: url --> " + url);
+          return url;
         }
+
+        // Populate results divs for authors type.
+        function authorsCallback(data) {
+          if (data != undefined) {
+            console.log("API results");
+            //Populate resultsHTML
+            $.each(data[0].data, function(i, datum) {
+              console.log('$.each: '+i+' '+datum);
+            });
+            authors = data[0].data; 
+            //select first author
+            firstAuthor = data[0].data[0];
+            console.log('first author: ' + firstAuthor);
+            // Now that we have a list of authors, fire of a request for that author's top posts.
+          } else {
+            console.log('no API results');
+          }
+        }
+
+        var apikey = "arstechnica.com";
+        var authorsParams = { days: 10, apikey: apikey };
+        url = buildUrl(baseUrl, 'authors', authorsParams);
+        click(url, authorsCallback);
 
       </script>
         <a href="https://github.com/Parsely/api-examples"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>

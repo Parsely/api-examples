@@ -138,10 +138,7 @@
 
         function buildUrl(base, endpoint, params, type) {
           var url = base + "/analytics/" + type + "?" + $.param(params);
-/*        if (strategy == "click") {
-pub_date    url = url.concat("&click.method="+click_method);
-          }
-*/        console.log("buildUrl: url --> " + url);
+          console.log("buildUrl: url --> " + url);
           return url;
         }
 
