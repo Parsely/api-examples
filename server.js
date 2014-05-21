@@ -16,14 +16,7 @@ var host = 'localhost',
 var baseUrl = "http://api.parsely.com/v2";
 
 function getSecret(apikey) {
-  var secret = "";
-  for (var i in CREDS) {
-    key = CREDS[i].apikey;
-    if (apikey == key) {
-      secret = CREDS[i].secret;
-    }
-  }
-  return secret;
+  return API_SECRET;
 }
 
 function combine(obj1, obj2) {
