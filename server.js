@@ -98,6 +98,7 @@ function shares(type,dThis) {
 function analytics(type,dThis) {
   var query = url.parse(dThis.req.url,true).query;
 
+  console.log('analytics query: ', util.inspect(query,false,2,true));
   // Clean off jQuery callback stuff
   // Don't want to pass that to parsely API.
   var jQuery =  {
@@ -156,6 +157,13 @@ function analyticsAuthors() {
   analytics(type,this);
 }
 
+function analyticsAuthorDetail(that, author) {
+  console.log('analytics author detail');
+  author = author.replace('-','%20');
+  var type = 'author/' + author + '/detail';
+  analytics(type,that);
+}
+
 function sharesPosts() {
   var type = 'posts';
   shares(type,this);
@@ -180,7 +188,18 @@ var router = new director.http.Router({
       },
       '/authors': {
         get: analyticsAuthors
-      }
+      },
+      // author is for the detail section
+      '/author': {
+        '/:author': {
+          '/detail' : {
+            get: function(author) {
+              console.log('author/:author/detail ' + author);
+              analyticsAuthorDetail(this,author);
+            }
+          }
+        }
+      },
     },
     '/shares': {
       '/posts': {

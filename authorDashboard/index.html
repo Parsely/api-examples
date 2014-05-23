@@ -15,7 +15,7 @@
         };
         // Parse.ly API root
         //var baseUrl = "http://api.parsely.com/v2";
-        var baseUrl = "http://localhost:9090/v2";
+        var baseUrl = "http://localhost:8080/v2";
 
         function click(url,callback) {
           $.getJSON(url, callback);
@@ -24,6 +24,7 @@
         function buildUrl(base, type, params) {
           var url = base + "/analytics/" + type + "?" + $.param(params);
           console.log("buildUrl: url --> " + url);
+          url += "&callback=?";
           return url;
         }
 
@@ -31,18 +32,43 @@
         function authorsCallback(data) {
           if (data != undefined) {
             console.log("API results");
-            //Populate resultsHTML
+            firstAuthor = '';
             $.each(data[0].data, function(i, datum) {
-              console.log('$.each: '+i+' '+datum);
+              // save the first author
+              if (i == 0) {
+                //firstAuthor = datum.author;
+                firstAuthor = datum.author.replace(' ','-');
+              }
+              console.log('$.each: ' + i + ' ' + JSON.stringify(datum));
             });
             authors = data[0].data; 
             //select first author
-            firstAuthor = data[0].data[0];
             console.log('first author: ' + firstAuthor);
             // Now that we have a list of authors, fire of a request for that author's top posts.
+            params = { days: 10, apikey: apikey };
+            detailUrl = buildUrl(baseUrl, 'author/'+ firstAuthor + '/detail', params);
+            click(detailUrl, authorDetailCallback);
           } else {
             console.log('no API results');
           }
+        }
+
+        function authorDetailCallback(data) {
+          console.log('authorDetailCallback start');
+          if (data != undefined) {
+            console.log("API results");
+            firstAuthor = '';
+            $.each(data[0].data, function(i, datum) {
+              console.log('$.each: ' + i + ' ' + JSON.stringify(datum));
+            });
+          } else {
+            console.log("No API results");
+          }
+          console.log('authorDetailCallback end');
+        }
+
+        // Generates the graph.
+        function makeGraph(views) {
         }
 
         var apikey = "arstechnica.com";
