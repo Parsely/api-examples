@@ -57,6 +57,8 @@ function apiCallback(err, res, body, that, jQuery) {
   }
 }
 
+// TODO: this is now broken. apiCallback has changed. It now returns a value
+// instead of directly sending the result back to the client.
 function shares(type,dThis) {
   var query = url.parse(dThis.req.url,true).query;
 
@@ -95,7 +97,7 @@ function shares(type,dThis) {
 }
 
 // Pass API call from web client along to parsely API server.
-function analytics(type,dThis) {
+function analyticsHandler(type,dThis) {
   var query = url.parse(dThis.req.url,true).query;
 
   console.log('analytics query: ', util.inspect(query,false,2,true));
@@ -130,7 +132,8 @@ function analytics(type,dThis) {
   console.log(options);
   //Make request
   request(options,function(err,res,body) {
-    apiCallback(err,res,body,that,jQuery);
+    apiData = apiCallback(err,res,body,that,jQuery);
+    console.log(apiData);
   });
 }
 
@@ -138,30 +141,36 @@ function analytics(type,dThis) {
 // [posts, sections, tags, authors] might be an anti-pattern.
 function analyticsPosts() {
   var type = 'posts';
-  analytics(type,this);
+  analyticsHandler(type,this);
 }
 
 function analyticsSections() {
   var type = 'sections';
-  analytics(type,this);
+  analyticsHandler(type,this);
 }
 
 function analyticsTags() {
   var type = 'tags';
-  analytics(type,this);
+  analyticsHandler(type,this);
 }
 
 function analyticsAuthors() {
   console.log('analytics authors');
   var type = 'authors';
-  analytics(type,this);
+  analyticsHandler(type,this);
 }
 
 function analyticsAuthorDetail(that, author) {
   console.log('analytics author detail');
   author = author.replace('-','%20');
   var type = 'author/' + author + '/detail';
-  analytics(type,that);
+  analyticsHandler(type,that);
+}
+
+function authorDaily(that, author) {
+  console.log('author Daily ' + author);
+  author = author.replace('-','%20');
+
 }
 
 function sharesPosts() {
@@ -204,6 +213,20 @@ var router = new director.http.Router({
     '/shares': {
       '/posts': {
         get: sharesPosts
+      }
+    }
+  },
+  '/v3': {
+    '/aggregates' : {
+      '/author/' : {
+        '/:author' : {
+          '/daily' : {
+            get : function (author) { 
+               console.log('/v3/aggregates/author/' + author + '/daily');
+               authorDaily(this, author);
+              }
+          }
+        }
       }
     }
   }

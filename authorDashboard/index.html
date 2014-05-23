@@ -45,12 +45,16 @@
             //select first author
             console.log('first author: ' + firstAuthor);
             // Now that we have a list of authors, fire of a request for that author's top posts.
-            params = { days: 10, apikey: apikey };
-            detailUrl = buildUrl(baseUrl, 'author/'+ firstAuthor + '/detail', params);
-            click(detailUrl, authorDetailCallback);
+            getGraphData( apikey, days, firstAuthor);
           } else {
             console.log('no API results');
           }
+        }
+
+        function getGraphData( apikey, days, author ) {
+          params = { days: days, apikey: apikey };
+          detailUrl = buildUrl(baseUrl, 'author/'+ author + '/detail', params);
+          click(detailUrl, authorDetailCallback);
         }
 
         function authorDetailCallback(data) {
@@ -58,6 +62,7 @@
           if (data != undefined) {
             console.log("API results");
             firstAuthor = '';
+            views = []
             $.each(data[0].data, function(i, datum) {
               console.log('$.each: ' + i + ' ' + JSON.stringify(datum));
             });
@@ -67,8 +72,26 @@
           console.log('authorDetailCallback end');
         }
 
+        function getHits( author, period_date) {
+          params = { limit: 10, apikey: apikey };
+          detailUrl = buildUrl(baseUrl, 'author/'+ firstAuthor + '/detail', params);
+          click(detailUrl, authorDetailCallback);
+        }
+
         // Generates the graph.
         function makeGraph(views) {
+          columns = [ views ];
+          var chart = c3.generate({
+            bindto: '#histogram',
+            data: { columns: [views], 
+                    type: 'bar'
+            },
+            bar: {
+              width: {
+                ratio: 0.75
+              }
+            }
+          })
         }
 
         var apikey = "arstechnica.com";
