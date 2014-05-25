@@ -14,15 +14,15 @@
          $("#uuid").val(PARSELY.config.parsely_site_uuid);
         };
         // Parse.ly API root
-        //var baseUrl = "http://api.parsely.com/v2";
-        var baseUrl = "http://localhost:8080/v2";
+        //var baseUrl = 'http://api.parsely.com/';
+        var baseUrl = 'http://localhost:8080';
 
         function click(url,callback) {
           $.getJSON(url, callback);
         }
 
-        function buildUrl(base, type, params) {
-          var url = base + "/analytics/" + type + "?" + $.param(params);
+        function buildUrl(base, endpoint, params) {
+          var url = base + endpoint + "?" + $.param(params);
           console.log("buildUrl: url --> " + url);
           url += "&callback=?";
           return url;
@@ -36,24 +36,24 @@
             $.each(data[0].data, function(i, datum) {
               // save the first author
               if (i == 0) {
-                //firstAuthor = datum.author;
-                firstAuthor = datum.author.replace(' ','-');
+                firstAuthor = datum.author;
               }
               console.log('$.each: ' + i + ' ' + JSON.stringify(datum));
             });
-            authors = data[0].data; 
+            // TODO: Don't just pick the first author.  Use an author specified somewhere else.
             //select first author
             console.log('first author: ' + firstAuthor);
             // Now that we have a list of authors, fire of a request for that author's top posts.
-            getGraphData( apikey, days, firstAuthor);
+            getGraphData( apikey, firstAuthor);
           } else {
             console.log('no API results');
           }
         }
 
-        function getGraphData( apikey, days, author ) {
-          params = { days: days, apikey: apikey };
-          detailUrl = buildUrl(baseUrl, 'author/'+ author + '/detail', params);
+        function getGraphData( apikey, author ) {
+          author = author.replace(' ','-');
+          params = { apikey: apikey };
+          detailUrl = buildUrl(baseUrl,'/v3/aggregates/author/'+ author +'/daily', params);
           click(detailUrl, authorDetailCallback);
         }
 
@@ -74,7 +74,7 @@
 
         function getHits( author, period_date) {
           params = { limit: 10, apikey: apikey };
-          detailUrl = buildUrl(baseUrl, 'author/'+ firstAuthor + '/detail', params);
+          detailUrl = buildUrl(baseUrl, '/v2/analytics/author/'+ firstAuthor + '/detail', params);
           click(detailUrl, authorDetailCallback);
         }
 
@@ -96,7 +96,7 @@
 
         var apikey = "arstechnica.com";
         var authorsParams = { days: 10, apikey: apikey };
-        url = buildUrl(baseUrl, 'authors', authorsParams);
+        url = buildUrl(baseUrl, '/v2/analytics/authors', authorsParams);
         click(url, authorsCallback);
 
       </script>

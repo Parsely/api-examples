@@ -4,6 +4,8 @@ var http = require('http'),
     util = require('util'),
     querystring = require('querystring'),
     request = require('request'),
+    async = require('async'),
+    moment = require('moment'),
     CREDS = require('config').creds,
     static = require('node-static');
 var file = new(static.Server)('.');
@@ -57,8 +59,7 @@ function apiCallback(err, res, body, that, jQuery) {
   }
 }
 
-// TODO: this is now broken. apiCallback has changed. It now returns a value
-// instead of directly sending the result back to the client.
+// TODO: this is now broken. apiCallback has changed.
 function shares(type,dThis) {
   var query = url.parse(dThis.req.url,true).query;
 
@@ -132,8 +133,7 @@ function analyticsHandler(type,dThis) {
   console.log(options);
   //Make request
   request(options,function(err,res,body) {
-    apiData = apiCallback(err,res,body,that,jQuery);
-    console.log(apiData);
+    apiCallback(err,res,body,that,jQuery);
   });
 }
 
@@ -170,7 +170,15 @@ function analyticsAuthorDetail(that, author) {
 function authorDaily(that, author) {
   console.log('author Daily ' + author);
   author = author.replace('-','%20');
-
+  // MAGIC MUMBER: days for which to calculate aggregate hits.
+  // Calculate array of dates in YYYY-MM-DD format.
+  numberOfDays = 10;
+  daysInPeriod = [];
+  var now = moment();
+  for (i = 0; i < numberOfDays; i++) {
+    daysInPeriod.push(now.subtract('days',1).format('YYYY-MM-DD'));
+  }
+  console.log('daysInPeriod', util.inspect(daysInPeriod,false,2,true));
 }
 
 function sharesPosts() {
@@ -218,7 +226,7 @@ var router = new director.http.Router({
   },
   '/v3': {
     '/aggregates' : {
-      '/author/' : {
+      '/author' : {
         '/:author' : {
           '/daily' : {
             get : function (author) { 
