@@ -59,10 +59,7 @@ function apiCallback(err, res, body, that, jQuery) {
   }
 }
 
-// TODO: this is now broken. apiCallback has changed.
-function shares(type,dThis) {
-  var query = url.parse(dThis.req.url,true).query;
-
+function extractCredsAndjQuery(query) {
   // Clean off jQuery callback stuff
   // Don't want to pass that to parsely API.
   var jQuery =  {
@@ -81,90 +78,62 @@ function shares(type,dThis) {
   // Remove credentials from query object
   delete query.apikey;
   delete query.secret; //placeholder secret sent by client
-
-  // Combine full credentails and remaining query parameters
-  var qs =  combine(creds,query);
-
-  // Assemble URI for API request.
-  var apiUrl = baseUrl + '/analytics/' + type;
-  var options = { url: apiUrl, qs: qs};
-  var that = dThis;
-  console.log('request options: ');
-  console.log(options);
-  //Make request
-  request(options,function(err,res,body) {
-    apiCallback(err,res,body,that,jQuery);
-  });
+  return {creds: creds, jQuery: jQuery};
 }
 
 // Pass API call from web client along to parsely API server.
-function analyticsHandler(type,dThis) {
+function ParselyHandler(endpoint,dThis) {
   var query = url.parse(dThis.req.url,true).query;
 
-  console.log('analytics query: ', util.inspect(query,false,2,true));
-  // Clean off jQuery callback stuff
-  // Don't want to pass that to parsely API.
-  var jQuery =  {
-    callback: query.callback,
-    _: query._
-  }
-  console.log('analytics jQuery: ', util.inspect(jQuery,false,2,true));
-  delete query.callback;
-  delete query._;
-
-  // Lookup secret by apikey in config/default.json
-  var creds = {
-    apikey: query.apikey,
-    secret: getSecret(query.apikey)
-  }
-
-  // Remove credentials from query object
-  delete query.apikey;
-  delete query.secret; //placeholder secret sent by client
-
+  extract = extractCredsAndjQuery(query);
   // Combine full credentails and remaining query parameters
-  var qs =  combine(creds,query);
+  var qs =  combine(extract.creds,query);
 
   // Assemble URI for API request.
-  var apiUrl = baseUrl + '/analytics/' + type;
+  var apiUrl = baseUrl + endpoint
   var options = { url: apiUrl, qs: qs};
   var that = dThis;
   console.log('request options: ');
   console.log(options);
   //Make request
   request(options,function(err,res,body) {
-    apiCallback(err,res,body,that,jQuery);
+    apiCallback(err,res,body,that,extract.jQuery);
   });
 }
 
 // TODO having a function here for each second level URL value 
 // [posts, sections, tags, authors] might be an anti-pattern.
 function analyticsPosts() {
-  var type = 'posts';
-  analyticsHandler(type,this);
+  ParselyHandler('/analytics/posts/',this);
 }
 
 function analyticsSections() {
-  var type = 'sections';
-  analyticsHandler(type,this);
+  ParselyHandler('/analytics/sections',this);
 }
 
 function analyticsTags() {
-  var type = 'tags';
-  analyticsHandler(type,this);
+  ParselyHandler('/analytics/tags',this);
 }
 
 function analyticsAuthors() {
-  console.log('analytics authors');
-  var type = 'authors';
-  analyticsHandler(type,this);
+  ParselyHandler('/analytics/authors',this);
 }
 
 function analyticsAuthorDetail(that, author) {
-  console.log('analytics author detail');
   author = author.replace('-','%20');
-  var type = 'author/' + author + '/detail';
-  analyticsHandler(type,that);
+  var endpoint = '/analytics/author/' + author + '/detail';
+  ParselyHandler(endpoint,this);
+}
+
+// Returns a function which fits the async.parallel pattern:
+// a function which takes one argument, which is a callback.
+// the return function executes this callback as its final action.
+function buildAPICall(baseUrl, date, author) {
+  return function(callback) {
+    url = baseUrl + '/analytics/author/' + author + '/detail';
+    // MAGIC NUMBER: number of posts to consider for daily totals: 20.
+    params = { period_start: date, period_end: date, limit: 20};
+  }
 }
 
 function authorDaily(that, author) {
@@ -176,7 +145,8 @@ function authorDaily(that, author) {
   daysInPeriod = [];
   var now = moment();
   for (i = 0; i < numberOfDays; i++) {
-    daysInPeriod.push(now.subtract('days',1).format('YYYY-MM-DD'));
+    daysInPeriod.push(now.format('YYYY-MM-DD'));
+    now.subtract('days',1);
   }
   console.log('daysInPeriod', util.inspect(daysInPeriod,false,2,true));
 }
@@ -211,7 +181,6 @@ var router = new director.http.Router({
         '/:author': {
           '/detail' : {
             get: function(author) {
-              console.log('author/:author/detail ' + author);
               analyticsAuthorDetail(this,author);
             }
           }
