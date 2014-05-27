@@ -34,32 +34,158 @@ function combine(obj1, obj2) {
   return obj3;
 }
 
-// return results to requestor (browser).
-function apiCallback(err, res, body, that, jQuery) {
+// TODO having a function here for each second level URL value 
+// [posts, sections, tags, authors] might be an anti-pattern.
+function analyticsPosts() {
+  var query = url.parse(this.req.url,true).query;
+  ParselyHandler('/analytics/posts',this, query);
+}
+
+function analyticsSections() {
+  var query = url.parse(this.req.url,true).query;
+  ParselyHandler('/analytics/sections',this, query);
+}
+
+function analyticsTags() {
+  var query = url.parse(this.req.url,true).query;
+  ParselyHandler('/analytics/tags',this, query);
+}
+
+function analyticsAuthors() {
+  var query = url.parse(this.req.url,true).query;
+  ParselyHandler('/analytics/authors',this, query);
+}
+
+function authorDaily(that, author) {
+  console.log('author Daily ' + author);
+  var query = url.parse(that.req.url,true).query;
+  creds = getCreds(query.apikey);
+  author = author.replace('-','%20');
+  function HandleAsyncResults(err, results) {
+    that.res.writeHead(200, {'Content-Type': 'application/json' });
+    // TODO: does results need JSON.stringify?
+    that.res.end(JSON.stringify(results));
+  }
+  // MAGIC MUMBER: days for which to calculate aggregate hits.
+  // Calculate array of dates in YYYY-MM-DD format.
+  numberOfDays = 10;
+  tasks = [];
+  var now = moment();
+  for (i = 0; i < numberOfDays; i++) {
+    day = now.format('YYYY-MM-DD');
+    now.subtract('days',1);
+    tasks.push(buildAPICall(creds, baseUrl, day, author));
+  }
+  console.log('daysInPeriod', util.inspect(tasks,false,2,true));
+  async.parallel(tasks,HandleAsyncResults);
+}
+
+function sharesPosts() {
+  var type = 'posts';
+  shares(type,this);
+}
+
+function analyticsAuthorDetail(that, author) {
+  author = author.replace('-','%20');
+  var endpoint = '/analytics/author/' + author + '/detail';
+  var query = url.parse(this.req.url,true).query;
+  ParselyHandler(endpoint,this, query);
+}
+
+// Pass API call from web client along to parsely API server.
+function ParselyHandler(endpoint,that, query) {
+  extract = getCredsAndjQuery(query);
+  // Combine full credentails and remaining query parameters
+  var qs =  combine(extract.creds,query);
+  // Assemble URI for API request.
+  var apiUrl = baseUrl + endpoint
+  var options = { url: apiUrl, qs: qs};
+  console.log('request options: ' + util.inspect(options,false,2,true));
+  qstring = querystring.stringify(qs);
+  console.log('API URL: ' + apiUrl + '?' + qstring);
+  request(options,function(err, apiResponse, body) {
+    browserApiCallback(err,apiResponse,body,that.res,extract.jQuery);
+  });
+}
+
+// Returns a function which fits the async.parallel pattern:
+// a function which takes one argument, which is a callback.
+// the return function executes this callback as its final action.
+function buildAPICall(creds, baseUrl, date, author) {
+  return function(callback) {
+    url = baseUrl + '/analytics/author/' + author + '/detail';
+    // MAGIC NUMBER: number of posts to consider for daily totals: 20.
+    params = { apikey: creds.apikey, secret: creds.secret,
+               period_start: date, period_end: date, limit: 20};
+    // TODO watch out!  deal with blank jQuery object on 
+    // those calls for the aggregate points.
+    var apiUrl = baseUrl + url;
+    var options = {url: apiUrl, qs: params};
+    request(options, function( err, apiResponse, body) {
+      aggregateApiCallback(err, apiResponse, body, callback);
+    });
+  }
+}
+
+function aggregateApiCallback(err, apiResponse, body, callback) {
   if (err) {
-    that.res.writeHead(500, {'Content-Type': 'text/plain' });
-    that.res.end('Error');
-    console.log('request callback error');
-  } else if (res.statusCode == 200 ) {
-    console.log('API RESPONSE');
+     console.log('AGGREGATE API REQUEST ERROR');
+     // TODO handle error
+  } else if (apiResponse.statusCode == 200 ) {
     if (body.code > 200) {
-      that.res.writeHead(body.code, {'Content-Type': 'text/plain' });
-      console.log('API RESPONSE FAIL');
+      console.log('AGGREGATE API RESPONSE NOT OK');
+     // TODO handle error
     } else {
-      that.res.writeHead(200, {'Content-Type': 'application/json' });
-      console.log('API RESPONSE SUCCESS');
-      jQuerycallback = jQuery.callback + '([' + body + '])';
-      that.res.end(jQuerycallback);
-      console.log(body);
+     // TODO handle OK
+      console.log('AGGREGATE API RESPONSE OK');
+      data = JSON.parse(body);
+      console.log(util.inspect(data, false, 2, true));
+      // Sum up _hits from each element
+      totalHits = 0;
+      callback(err, totalHits)
     }
   } else {
-    console.log('API RESPONSE ERROR');
-    that.res.end(body);
+    console.log('AGGREGATE API RESPONSE ERROR');
+    clientResponse.end(body);
     console.log(body);
   }
 }
 
-function extractCredsAndjQuery(query) {
+// return results to requestor (browser).
+function browserApiCallback(err, apiResponse, body, clientResponse, jQuery) {
+  if (err) {
+     clientResponse.writeHead(500, {'Content-Type': 'text/plain' });
+     clientResponse.end('Error');
+     console.log('API REQUEST ERROR');
+  } else if (apiResponse.statusCode == 200 ) {
+    if (body.code > 200) {
+      clientResponse.writeHead(body.code, {'Content-Type': 'text/plain' });
+      clientResponse.end();
+      console.log('API RESPONSE NOT OK');
+    } else {
+      clientResponse.writeHead(200, {'Content-Type': 'application/json' });
+      console.log('API RESPONSE OK');
+      jQueryCallback = jQuery.callback + '([' + body + '])';
+      clientResponse.end(jQueryCallback);
+      console.log(body);
+    }
+  } else {
+    console.log('API RESPONSE ERROR');
+    clientResponse.end(body);
+    console.log(body);
+  }
+}
+
+function getCreds(apikey) {
+  // Lookup secret by apikey in config/default.json
+  var creds = {
+    apikey: apikey,
+    secret: getSecret(apikey)
+  }
+  return creds;
+}
+
+function getCredsAndjQuery(query) {
   // Clean off jQuery callback stuff
   // Don't want to pass that to parsely API.
   var jQuery =  {
@@ -79,81 +205,6 @@ function extractCredsAndjQuery(query) {
   delete query.apikey;
   delete query.secret; //placeholder secret sent by client
   return {creds: creds, jQuery: jQuery};
-}
-
-// Pass API call from web client along to parsely API server.
-function ParselyHandler(endpoint,dThis) {
-  var query = url.parse(dThis.req.url,true).query;
-
-  extract = extractCredsAndjQuery(query);
-  // Combine full credentails and remaining query parameters
-  var qs =  combine(extract.creds,query);
-
-  // Assemble URI for API request.
-  var apiUrl = baseUrl + endpoint
-  var options = { url: apiUrl, qs: qs};
-  var that = dThis;
-  console.log('request options: ');
-  console.log(options);
-  //Make request
-  request(options,function(err,res,body) {
-    apiCallback(err,res,body,that,extract.jQuery);
-  });
-}
-
-// TODO having a function here for each second level URL value 
-// [posts, sections, tags, authors] might be an anti-pattern.
-function analyticsPosts() {
-  ParselyHandler('/analytics/posts/',this);
-}
-
-function analyticsSections() {
-  ParselyHandler('/analytics/sections',this);
-}
-
-function analyticsTags() {
-  ParselyHandler('/analytics/tags',this);
-}
-
-function analyticsAuthors() {
-  ParselyHandler('/analytics/authors',this);
-}
-
-function analyticsAuthorDetail(that, author) {
-  author = author.replace('-','%20');
-  var endpoint = '/analytics/author/' + author + '/detail';
-  ParselyHandler(endpoint,this);
-}
-
-// Returns a function which fits the async.parallel pattern:
-// a function which takes one argument, which is a callback.
-// the return function executes this callback as its final action.
-function buildAPICall(baseUrl, date, author) {
-  return function(callback) {
-    url = baseUrl + '/analytics/author/' + author + '/detail';
-    // MAGIC NUMBER: number of posts to consider for daily totals: 20.
-    params = { period_start: date, period_end: date, limit: 20};
-  }
-}
-
-function authorDaily(that, author) {
-  console.log('author Daily ' + author);
-  author = author.replace('-','%20');
-  // MAGIC MUMBER: days for which to calculate aggregate hits.
-  // Calculate array of dates in YYYY-MM-DD format.
-  numberOfDays = 10;
-  daysInPeriod = [];
-  var now = moment();
-  for (i = 0; i < numberOfDays; i++) {
-    daysInPeriod.push(now.format('YYYY-MM-DD'));
-    now.subtract('days',1);
-  }
-  console.log('daysInPeriod', util.inspect(daysInPeriod,false,2,true));
-}
-
-function sharesPosts() {
-  var type = 'posts';
-  shares(type,this);
 }
 
 function staticServe() {
