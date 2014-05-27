@@ -3,9 +3,12 @@
         <title>Parse.ly API examples</title>
         <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/api.css" rel="stylesheet">
+        <link href="author.css" rel="stylesheet">
         <script src="http://codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
-
+        <!-- Load d3.js and c3.js -->
+        <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.4.8/d3.min.js" charset="utf-8"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/c3/0.1.29/c3.min.js"></script>
     </head>
     <body onload="">
       <script>
@@ -63,10 +66,14 @@
             console.log("API results ");
             console.log(data);
             firstAuthor = '';
-            views = []
+            views = ['views'];
+            x = ['x'];
             $.each(data[0], function(i, datum) {
               console.log('$.each: ' + i + ' ' + JSON.stringify(datum));
+              views.push(datum.hits);
+              x.push(datum.date);
             });
+            makeGraph(x, views);
           } else {
             console.log("No API results");
           }
@@ -80,16 +87,29 @@
         }
 
         // Generates the graph.
-        function makeGraph(views) {
-          columns = [ views ];
+        function makeGraph(x, views) {
+          console.log('makeGraph: ' + x.toString());
+          console.log('makeGraph: ' + views.toString());
+          columns = [ x, views ];
           var chart = c3.generate({
             bindto: '#histogram',
-            data: { columns: [views], 
-                    type: 'bar'
+            data: {
+              x: 'x',
+              columns: [x, views], 
+              type: 'bar'
             },
             bar: {
               width: {
-                ratio: 0.75
+                ratio: 1.0
+              }
+            },
+            axis: {
+              x: {
+                type: 'timeseries',
+                tick: {
+                  count: 5,
+                  format: '%Y-%m-%d'
+                }
               }
             }
           })
