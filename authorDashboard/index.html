@@ -60,10 +60,11 @@
         function authorDetailCallback(data) {
           console.log('authorDetailCallback start');
           if (data != undefined) {
-            console.log("API results");
+            console.log("API results ");
+            console.log(data);
             firstAuthor = '';
             views = []
-            $.each(data, function(i, datum) {
+            $.each(data[0], function(i, datum) {
               console.log('$.each: ' + i + ' ' + JSON.stringify(datum));
             });
           } else {

@@ -1,6 +1,6 @@
 var http = require('http'),
     director = require('director'),
-    url = require('url'),
+    urllib = require('url'),
     util = require('util'),
     querystring = require('querystring'),
     request = require('request'),
@@ -37,28 +37,28 @@ function combine(obj1, obj2) {
 // TODO having a function here for each second level URL value 
 // [posts, sections, tags, authors] might be an anti-pattern.
 function analyticsPosts() {
-  var query = url.parse(this.req.url,true).query;
+  var query = urllib.parse(this.req.url,true).query;
   ParselyHandler('/analytics/posts',this, query);
 }
 
 function analyticsSections() {
-  var query = url.parse(this.req.url,true).query;
+  var query = urllib.parse(this.req.url,true).query;
   ParselyHandler('/analytics/sections',this, query);
 }
 
 function analyticsTags() {
-  var query = url.parse(this.req.url,true).query;
+  var query = urllib.parse(this.req.url,true).query;
   ParselyHandler('/analytics/tags',this, query);
 }
 
 function analyticsAuthors() {
-  var query = url.parse(this.req.url,true).query;
+  var query = urllib.parse(this.req.url,true).query;
   ParselyHandler('/analytics/authors',this, query);
 }
 
 function authorDaily(that, author) {
   console.log('author Daily ' + author);
-  var query = url.parse(that.req.url,true).query;
+  var query = urllib.parse(that.req.url,true).query;
   extract = getCredsAndjQuery(query);
   author = author.replace('-','%20');
 
@@ -92,7 +92,7 @@ function sharesPosts() {
 function analyticsAuthorDetail(that, author) {
   author = author.replace('-','%20');
   var endpoint = '/analytics/author/' + author + '/detail';
-  var query = url.parse(this.req.url,true).query;
+  var query = urllib.parse(this.req.url,true).query;
   ParselyHandler(endpoint,this, query);
 }
 
@@ -117,14 +117,16 @@ function ParselyHandler(endpoint,that, query) {
 // the return function executes this callback as its final action.
 function buildAPICall(creds, baseUrl, date, author) {
   return function(callback) {
-    url = baseUrl + '/analytics/author/' + author + '/detail';
+    var url = baseUrl + '/analytics/author/' + author + '/detail';
     // MAGIC NUMBER: number of posts to consider for daily totals: 20.
     params = { apikey: creds.apikey, secret: creds.secret,
                period_start: date, period_end: date, limit: 20};
     // TODO watch out!  deal with blank jQuery object on 
     // those calls for the aggregate points.
-    var apiUrl = baseUrl + url;
-    var options = {url: apiUrl, qs: params};
+    var options = {url: url, qs: params};
+    console.log('request options: ' + util.inspect(options,false,2,true));
+    qstring = querystring.stringify(params);
+    console.log('API URL: ' + url + '?' + qstring);
     request(options, function( err, apiResponse, body) {
       aggregateApiCallback(err, apiResponse, body, date, callback);
     });
@@ -143,14 +145,13 @@ function aggregateApiCallback(err, apiResponse, body, date, callback) {
      // TODO handle OK
       console.log('AGGREGATE API RESPONSE OK');
       data = JSON.parse(body);
-      console.log(util.inspect(data, false, 2, true));
+      //console.log(util.inspect(data, false, 2, true));
       //console.log(util.inspect(data[0], false, 2, true));
       // Sum up _hits from each element
       totalHits = 0;
       for (i in data.data) {
-        console.log(util.inspect(data.data[i], false, 2, true));
+        //console.log(util.inspect(data.data[i], false, 2, true));
         totalHits += data.data[i]._hits;
-        console.log(totalHits);
       }
       result = {date: date, hits: totalHits};
       callback(err, result)
@@ -277,7 +278,7 @@ var serv = http.createServer(function (req, res) {
   console.log('HTTP request: req.method:  '+ req.method);
   console.log('HTTP request: req.url:  '+ req.url);
   console.log('HTTP request: req.body: '+ req.body);
-  var path = url.parse(req.url,true).pathname;
+  var path = urllib.parse(req.url,true).pathname;
   console.log('HTTP request: path: '+ path);
   req.addListener('end', function () {
     router.dispatch(req, res, function(err) {
