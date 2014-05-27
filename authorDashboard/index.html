@@ -63,7 +63,7 @@
             console.log("API results");
             firstAuthor = '';
             views = []
-            $.each(data[0].data, function(i, datum) {
+            $.each(data, function(i, datum) {
               console.log('$.each: ' + i + ' ' + JSON.stringify(datum));
             });
           } else {

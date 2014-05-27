@@ -59,13 +59,17 @@ function analyticsAuthors() {
 function authorDaily(that, author) {
   console.log('author Daily ' + author);
   var query = url.parse(that.req.url,true).query;
-  creds = getCreds(query.apikey);
+  extract = getCredsAndjQuery(query);
   author = author.replace('-','%20');
+
   function HandleAsyncResults(err, results) {
+    // Send results to browser
+    jQueryCallback = extract.jQuery.callback 
+                     + '([' + JSON.stringify(results) + '])';
     that.res.writeHead(200, {'Content-Type': 'application/json' });
-    // TODO: does results need JSON.stringify?
-    that.res.end(JSON.stringify(results));
+    that.res.end(jQueryCallback);
   }
+
   // MAGIC MUMBER: days for which to calculate aggregate hits.
   // Calculate array of dates in YYYY-MM-DD format.
   numberOfDays = 10;
@@ -74,7 +78,7 @@ function authorDaily(that, author) {
   for (i = 0; i < numberOfDays; i++) {
     day = now.format('YYYY-MM-DD');
     now.subtract('days',1);
-    tasks.push(buildAPICall(creds, baseUrl, day, author));
+    tasks.push(buildAPICall(extract.creds, baseUrl, day, author));
   }
   console.log('daysInPeriod', util.inspect(tasks,false,2,true));
   async.parallel(tasks,HandleAsyncResults);
@@ -122,12 +126,12 @@ function buildAPICall(creds, baseUrl, date, author) {
     var apiUrl = baseUrl + url;
     var options = {url: apiUrl, qs: params};
     request(options, function( err, apiResponse, body) {
-      aggregateApiCallback(err, apiResponse, body, callback);
+      aggregateApiCallback(err, apiResponse, body, date, callback);
     });
   }
 }
 
-function aggregateApiCallback(err, apiResponse, body, callback) {
+function aggregateApiCallback(err, apiResponse, body, date, callback) {
   if (err) {
      console.log('AGGREGATE API REQUEST ERROR');
      // TODO handle error
@@ -140,9 +144,16 @@ function aggregateApiCallback(err, apiResponse, body, callback) {
       console.log('AGGREGATE API RESPONSE OK');
       data = JSON.parse(body);
       console.log(util.inspect(data, false, 2, true));
+      //console.log(util.inspect(data[0], false, 2, true));
       // Sum up _hits from each element
       totalHits = 0;
-      callback(err, totalHits)
+      for (i in data.data) {
+        console.log(util.inspect(data.data[i], false, 2, true));
+        totalHits += data.data[i]._hits;
+        console.log(totalHits);
+      }
+      result = {date: date, hits: totalHits};
+      callback(err, result)
     }
   } else {
     console.log('AGGREGATE API RESPONSE ERROR');
@@ -154,20 +165,21 @@ function aggregateApiCallback(err, apiResponse, body, callback) {
 // return results to requestor (browser).
 function browserApiCallback(err, apiResponse, body, clientResponse, jQuery) {
   if (err) {
+     console.log('API REQUEST ERROR');
      clientResponse.writeHead(500, {'Content-Type': 'text/plain' });
      clientResponse.end('Error');
-     console.log('API REQUEST ERROR');
   } else if (apiResponse.statusCode == 200 ) {
     if (body.code > 200) {
+      console.log('API RESPONSE NOT OK');
       clientResponse.writeHead(body.code, {'Content-Type': 'text/plain' });
       clientResponse.end();
-      console.log('API RESPONSE NOT OK');
     } else {
-      clientResponse.writeHead(200, {'Content-Type': 'application/json' });
       console.log('API RESPONSE OK');
+      clientResponse.writeHead(200, {'Content-Type': 'application/json' });
       jQueryCallback = jQuery.callback + '([' + body + '])';
       clientResponse.end(jQueryCallback);
-      console.log(body);
+      data = JSON.parse(body);
+      console.log(util.inspect(data, false, 2, true));
     }
   } else {
     console.log('API RESPONSE ERROR');
