@@ -6,6 +6,8 @@ var http = require('http'),
     request = require('request'),
     async = require('async'),
     moment = require('moment'),
+    winston = require('winston'),
+    Sentry = require('winston-sentry'),
     CREDS = require('config').creds,
     static = require('node-static');
 var file = new(static.Server)('.');
@@ -19,9 +21,22 @@ var argv = require('yargs')
 var host = 'localhost',
     port = argv.p,
     API_KEY = process.env.API_KEY,
-    API_SECRET = process.env.API_SECRET;
+    API_SECRET = process.env.API_SECRET,
+    SENTRY_DSN = process.env.SENTRY_DSN;
 
 var baseUrl = "http://api.parsely.com/v2";
+
+// Set up logging
+var logger = new winston.Logger({
+    transports: [
+        new winston.transports.Console({timestamp: true}),
+        new Sentry({
+                level: 'warn',
+                dsn: SENTRY_DSN,
+                patchGlobal: true,
+            })
+        ],
+});
 
 function getSecret(apikey) {
   return API_SECRET;
@@ -57,7 +72,7 @@ function analyticsAuthors() {
 }
 
 function authorDaily(that, author) {
-  console.log('author Daily ' + author);
+  logger.info('author Daily ' + author);
   var query = urllib.parse(that.req.url,true).query;
   extract = getCredsAndjQuery(query);
   author = author.replace('-','%20');
@@ -80,7 +95,7 @@ function authorDaily(that, author) {
     now.subtract('days',1);
     tasks.push(buildAPICall(extract.creds, baseUrl, day, author));
   }
-  console.log('daysInPeriod', util.inspect(tasks,false,2,true));
+  logger.info('daysInPeriod', util.inspect(tasks,false,2,true));
   async.parallel(tasks,HandleAsyncResults);
 }
 
@@ -104,9 +119,9 @@ function ParselyHandler(endpoint,that, query) {
   // Assemble URI for API request.
   var apiUrl = baseUrl + endpoint
   var options = { url: apiUrl, qs: qs};
-  console.log('request options: ' + util.inspect(options,false,2,true));
+  logger.info('request options: ' + util.inspect(options,false,2,true));
   qstring = querystring.stringify(qs);
-  console.log('API URL: ' + apiUrl + '?' + qstring);
+  logger.info('API URL: ' + apiUrl + '?' + qstring);
   request(options,function(err, apiResponse, body) {
     browserApiCallback(err,apiResponse,body,that.res,extract.jQuery);
   });
@@ -124,9 +139,9 @@ function buildAPICall(creds, baseUrl, date, author) {
     // TODO watch out!  deal with blank jQuery object on 
     // those calls for the aggregate points.
     var options = {url: url, qs: params};
-    console.log('request options: ' + util.inspect(options,false,2,true));
+    logger.info('request options: ' + util.inspect(options,false,2,true));
     qstring = querystring.stringify(params);
-    console.log('API URL: ' + url + '?' + qstring);
+    logger.info('API URL: ' + url + '?' + qstring);
     request(options, function( err, apiResponse, body) {
       aggregateApiCallback(err, apiResponse, body, date, callback);
     });
@@ -135,57 +150,57 @@ function buildAPICall(creds, baseUrl, date, author) {
 
 function aggregateApiCallback(err, apiResponse, body, date, callback) {
   if (err) {
-     console.log('AGGREGATE API REQUEST ERROR');
+     logger.info('AGGREGATE API REQUEST ERROR');
      // TODO handle error
   } else if (apiResponse.statusCode == 200 ) {
     if (body.code > 200) {
-      console.log('AGGREGATE API RESPONSE NOT OK');
+      logger.info('AGGREGATE API RESPONSE NOT OK');
      // TODO handle error
     } else {
      // TODO handle OK
-      console.log('AGGREGATE API RESPONSE OK');
+      logger.info('AGGREGATE API RESPONSE OK');
       data = JSON.parse(body);
-      //console.log(util.inspect(data, false, 2, true));
-      //console.log(util.inspect(data[0], false, 2, true));
+      //logger.info(util.inspect(data, false, 2, true));
+      //logger.info(util.inspect(data[0], false, 2, true));
       // Sum up _hits from each element
       totalHits = 0;
       for (i in data.data) {
-        //console.log(util.inspect(data.data[i], false, 2, true));
+        //logger.info(util.inspect(data.data[i], false, 2, true));
         totalHits += data.data[i]._hits;
       }
       result = {date: date, hits: totalHits};
       callback(err, result)
     }
   } else {
-    console.log('AGGREGATE API RESPONSE ERROR');
+    logger.info('AGGREGATE API RESPONSE ERROR');
     clientResponse.end(body);
-    console.log(body);
+    logger.info(body);
   }
 }
 
 // return results to requestor (browser).
 function browserApiCallback(err, apiResponse, body, clientResponse, jQuery) {
   if (err) {
-     console.log('API REQUEST ERROR');
+     logger.info('API REQUEST ERROR');
      clientResponse.writeHead(500, {'Content-Type': 'text/plain' });
      clientResponse.end('Error');
   } else if (apiResponse.statusCode == 200 ) {
     if (body.code > 200) {
-      console.log('API RESPONSE NOT OK');
+      logger.info('API RESPONSE NOT OK');
       clientResponse.writeHead(body.code, {'Content-Type': 'text/plain' });
       clientResponse.end();
     } else {
-      console.log('API RESPONSE OK');
+      logger.info('API RESPONSE OK');
       clientResponse.writeHead(200, {'Content-Type': 'application/json' });
       jQueryCallback = jQuery.callback + '([' + body + '])';
       clientResponse.end(jQueryCallback);
       data = JSON.parse(body);
-      console.log(util.inspect(data, false, 2, true));
+      logger.info(util.inspect(data, false, 2, true));
     }
   } else {
-    console.log('API RESPONSE ERROR');
+    logger.info('API RESPONSE ERROR');
     clientResponse.end(body);
-    console.log(body);
+    logger.info(body);
   }
 }
 
@@ -222,6 +237,10 @@ function getCredsAndjQuery(query) {
 
 function staticServe() {
   file.serve(this.req, this.res);
+}
+
+function fail(that) {
+  logger.error('test error from author dashboard. everything is OK.');
 }
 
 // define a routing table.
@@ -263,23 +282,26 @@ var router = new director.http.Router({
         '/:author' : {
           '/daily' : {
             get : function (author) { 
-               console.log('/v3/aggregates/author/' + author + '/daily');
+               logger.info('/v3/aggregates/author/' + author + '/daily');
                authorDaily(this, author);
               }
           }
         }
       }
+    },
+    '/fail' :{
+      get : fail
     }
   }
 });
 
 // Create HTTP server
 var serv = http.createServer(function (req, res) {
-  console.log('HTTP request: req.method:  '+ req.method);
-  console.log('HTTP request: req.url:  '+ req.url);
-  console.log('HTTP request: req.body: '+ req.body);
+  logger.info('HTTP request: req.method:  '+ req.method);
+  logger.info('HTTP request: req.url:  '+ req.url);
+  logger.info('HTTP request: req.body: '+ req.body);
   var path = urllib.parse(req.url,true).pathname;
-  console.log('HTTP request: path: '+ path);
+  logger.info('HTTP request: path: '+ path);
   req.addListener('end', function () {
     router.dispatch(req, res, function(err) {
       if (err) {
@@ -295,4 +317,4 @@ var serv = http.createServer(function (req, res) {
 router.get(/.*/, staticServe);
 
 serv.listen(port,host);
-console.log('Server running at http://'+host+':'+port);
+logger.info('Server running at http://'+host+':'+port);
