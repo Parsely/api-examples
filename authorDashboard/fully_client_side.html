@@ -9,81 +9,25 @@
         <!-- Load d3.js and c3.js -->
         <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.4.8/d3.min.js" charset="utf-8"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/c3/0.1.29/c3.min.js"></script>
+        <script src='//cdnjs.cloudflare.com/ajax/libs/async/0.9.0/async.js'></script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.6.0/moment.js'></script>
+        <!-- deployment specific things stored in creds -->
+        <script src='creds.js'></script>
+        <!-- tools for aggregating many requests to Parse.ly API endpoints -->
+        <script src='parsely-aggregates.js'></script>
     </head>
     <body onload="">
       <script>
-        function handleParselyOnLoad() {
-          console.log('handleParselyOnLoad '+PARSELY.config.parsely_site_uuid);
-         $("#uuid").val(PARSELY.config.parsely_site_uuid);
-        };
         // Parse.ly API root
-        //var baseUrl = 'http://api.parsely.com/';
-        var baseUrl = 'http://localhost:8080';
+        var baseUrl = 'http://api.parsely.com/';
 
-        function click(url,callback) {
-          $.getJSON(url, callback);
-        }
+        //$.getJSON(url, callback);
 
         function buildUrl(base, endpoint, params) {
           var url = base + endpoint + "?" + $.param(params);
           console.log("buildUrl: url --> " + url);
           url += "&callback=?";
           return url;
-        }
-
-        // Populate results divs for authors type.
-        function authorsCallback(data) {
-          if (data != undefined) {
-            console.log("API results");
-            firstAuthor = '';
-            $.each(data[0].data, function(i, datum) {
-              // save the first author
-              if (i == 0) {
-                firstAuthor = datum.author;
-              }
-              console.log('$.each: ' + i + ' ' + JSON.stringify(datum));
-            });
-            // TODO: Don't just pick the first author.  Use an author specified somewhere else.
-            //select first author
-            console.log('first author: ' + firstAuthor);
-            // Now that we have a list of authors, fire of a request for that author's top posts.
-            getGraphData( apikey, firstAuthor);
-          } else {
-            console.log('no API results');
-          }
-        }
-
-        function getGraphData( apikey, author ) {
-          author = author.replace(' ','-');
-          params = { apikey: apikey };
-          detailUrl = buildUrl(baseUrl,'/v3/aggregates/author/'+ author +'/daily', params);
-          click(detailUrl, authorDetailCallback);
-        }
-
-        function authorDetailCallback(data) {
-          console.log('authorDetailCallback start');
-          if (data != undefined) {
-            console.log("API results ");
-            console.log(data);
-            firstAuthor = '';
-            views = ['views'];
-            x = ['x'];
-            $.each(data[0], function(i, datum) {
-              console.log('$.each: ' + i + ' ' + JSON.stringify(datum));
-              views.push(datum.hits);
-              x.push(datum.date);
-            });
-            makeGraph(x, views);
-          } else {
-            console.log("No API results");
-          }
-          console.log('authorDetailCallback end');
-        }
-
-        function getHits( author, period_date) {
-          params = { limit: 10, apikey: apikey };
-          detailUrl = buildUrl(baseUrl, '/v2/analytics/author/'+ firstAuthor + '/detail', params);
-          click(detailUrl, authorDetailCallback);
         }
 
         // Generates the graph.
@@ -115,10 +59,37 @@
           })
         }
 
-        var apikey = "arstechnica.com";
-        var authorsParams = { days: 10, apikey: apikey };
-        url = buildUrl(baseUrl, '/v2/analytics/authors', authorsParams);
-        click(url, authorsCallback);
+        function graphBuilder(err, data) {
+          console.log('graphBuilder start');
+          if (data != undefined) {
+            console.log("API results ");
+            console.log(data);
+            views = ['views'];
+            x = ['x'];
+            $.each(data[0], function(i, datum) {
+              console.log('$.each: ' + i + ' ' + JSON.stringify(datum));
+              views.push(datum.hits);
+              x.push(datum.date);
+            });
+            makeGraph(x, views);
+          } else {
+            console.log("graphBuilder: No API results");
+          }
+          console.log('graphBuilder end');
+        }
+
+        // creds.js is used to hold values which would be 
+        // specific to each publisher.
+        // TODO: modify to use current author name.
+        var author = creds.AUTHOR;
+
+        // NOTE: only use this method if you want all your 
+        // /analytics data to be publicly available.
+        // TODO: modify to use credentials for your site.
+        var apikey = creds.apikey;
+        var secret = creds.secret;;
+
+        parselyAggregates.authorDaily(apikey, secret, author, graphBuilder);
 
       </script>
         <a href="https://github.com/Parsely/api-examples"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>

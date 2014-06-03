@@ -71,6 +71,35 @@ function analyticsAuthors() {
   ParselyHandler('/analytics/authors',this, query);
 }
 
+function sharesPosts() {
+  var query = urllib.parse(this.req.url,true).query;
+  ParselyHandler('/shares/posts'type,this, query);
+}
+
+function analyticsAuthorDetail(that, author) {
+  author = author.replace('-','%20');
+  var endpoint = '/analytics/author/' + author + '/detail';
+  var query = urllib.parse(this.req.url,true).query;
+  ParselyHandler(endpoint,this, query);
+}
+
+// Pass API call from web client along to parsely API server.
+function ParselyHandler(endpoint,that, query) {
+  extract = getCredsAndjQuery(query);
+  // Combine full credentails and remaining query parameters
+  var qs =  combine(extract.creds,query);
+  // Assemble URI for API request.
+  var apiUrl = baseUrl + endpoint
+  var options = { url: apiUrl, qs: qs};
+  logger.info('request options: ' + util.inspect(options,false,2,true));
+  qstring = querystring.stringify(qs);
+  logger.info('API URL: ' + apiUrl + '?' + qstring);
+  request(options,function(err, apiResponse, body) {
+    browserApiCallback(err,apiResponse,body,that.res,extract.jQuery);
+  });
+}
+
+
 function authorDaily(that, author) {
   logger.info('author Daily ' + author);
   var query = urllib.parse(that.req.url,true).query;
@@ -97,34 +126,6 @@ function authorDaily(that, author) {
   }
   logger.info('daysInPeriod', util.inspect(tasks,false,2,true));
   async.parallel(tasks,HandleAsyncResults);
-}
-
-function sharesPosts() {
-  var type = 'posts';
-  shares(type,this);
-}
-
-function analyticsAuthorDetail(that, author) {
-  author = author.replace('-','%20');
-  var endpoint = '/analytics/author/' + author + '/detail';
-  var query = urllib.parse(this.req.url,true).query;
-  ParselyHandler(endpoint,this, query);
-}
-
-// Pass API call from web client along to parsely API server.
-function ParselyHandler(endpoint,that, query) {
-  extract = getCredsAndjQuery(query);
-  // Combine full credentails and remaining query parameters
-  var qs =  combine(extract.creds,query);
-  // Assemble URI for API request.
-  var apiUrl = baseUrl + endpoint
-  var options = { url: apiUrl, qs: qs};
-  logger.info('request options: ' + util.inspect(options,false,2,true));
-  qstring = querystring.stringify(qs);
-  logger.info('API URL: ' + apiUrl + '?' + qstring);
-  request(options,function(err, apiResponse, body) {
-    browserApiCallback(err,apiResponse,body,that.res,extract.jQuery);
-  });
 }
 
 // Returns a function which fits the async.parallel pattern:
