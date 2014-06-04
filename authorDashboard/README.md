@@ -8,12 +8,15 @@ This is an example of two dashboard elements powered by the Parse.ly API:
    1. a historical histogram of page views data for a particular author.
    1. a list of the author's top posts, sorted by page views.
 
-
 What's included?
 ----------------
   * creds.js - this file contains a structure for providing apikey and secret.
   * fully_client_side.html - this file uses the apikey and secret to make requests to the analytics endpoint.
   * c3.js - a visualization library built on top of d3.js. 
+
+Install
+-------
+  * populate `creds.js` with your API key and secret, as well as an author name.
 
 Dependencies
 ------------
