@@ -60,14 +60,10 @@
         }
 
         function graphBuilder(err, data) {
-          console.log('graphBuilder start');
           if (data != undefined) {
-            console.log("API results ");
-            console.log(data);
             views = ['views'];
             x = ['x'];
             $.each(data, function(i, datum) {
-              console.log('$.each: ' + i + ' ' + JSON.stringify(datum));
               views.push(datum.hits);
               x.push(datum.date);
             });
@@ -75,7 +71,6 @@
           } else {
             console.log("graphBuilder: No API results");
           }
-          console.log('graphBuilder end');
         }
 
         // creds.js is used to hold values which would be 

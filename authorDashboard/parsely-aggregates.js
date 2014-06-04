@@ -46,7 +46,6 @@ var parselyAggregates = (function () {
        // TODO handle error
     } else if (statusCode == 'success') {
       // TODO handle OK
-      console.log('AGGREGATE API RESPONSE OK');
       // Sum up _hits from each element
       totalHits = 0;
       for (i in data.data) {
