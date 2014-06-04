@@ -34,10 +34,8 @@
 
         // Generates the graph.
         function makeGraph(x, views) {
-          console.log('makeGraph: ' + x.toString());
-          console.log('makeGraph: ' + views.toString());
           columns = [ x, views ];
-          var chart = c3.generate({
+          var graph = c3.generate({
             bindto: '#histogram',
             data: {
               x: 'x',
@@ -46,19 +44,35 @@
             },
             bar: {
               width: {
-                ratio: 1.0
+                ratio: 0.95
               }
             },
+            size: {
+              width: 1200,
+              height: 300
+            },
+            legend: {
+              show: false
+            },
+            grid : {
+              y : { show: true }
+            },
             axis: {
+              y: {
+                tick: {
+                  format: d3.format(',')
+                }
+              },
               x: {
                 type: 'timeseries',
                 tick: {
                   count: 5,
-                  format: '%Y-%m-%d'
+                  format: '%m/%d'
                 }
               }
             }
           })
+          return graph;
         }
 
         function graphBuilder(err, data) {
@@ -69,18 +83,16 @@
               views.push(datum.hits);
               x.push(datum.date);
             });
-            makeGraph(x, views);
+            graph = makeGraph(x, views);
           } else {
             console.log("graphBuilder: No API results");
           }
         }
 
         function authorDetailCallback(data, statusCode) {
-          console.log(data);
           if (data != undefined) {
             $.each(data.data, function(i, datum) {
               //TODO: Generate snazzy looking list of posts ranked by page views.
-              console.log('authorDetailCallback $.each: ' + i + ' ' + JSON.stringify(datum));
               var postsDiv = $("#posts");
               postsDiv.html("");
               $.each(data.data, function(i, datum) {
@@ -103,7 +115,6 @@
           day = now.format('YYYY-MM-DD');
           params = { apikey: key, secret: secret, limit: limit, period_start: day, period_end: day };
           detailUrl = buildUrl(baseUrl, 'analytics/author/'+ author + '/detail', params);
-          console.log('detailUrl: ' + detailUrl);
           $.getJSON(detailUrl, authorDetailCallback);
         }
 
@@ -120,7 +131,9 @@
 
         //MAGIC NUMBER
         // 90 days of history.
-        parselyAggregates.authorDaily(apikey, secret, author, 90, graphBuilder);
+        parselyAggregates.authorDaily(apikey, secret, author, 60, function (err, data) {
+          graphBuilder(err, data);
+        });
         //MAGIC NUMBER
         // 20 top posts.
         getPosts(apikey, secret, author, '20');
@@ -140,8 +153,10 @@
         </div> <!-- row  -->
         <hr>
         <div class="row">
-          <div class="col-md-12" id="histogram">
-              <p>histogram</p>
+          <div class="col-md-12">
+              <div id="histogram">
+                <p>histogram</p>
+              </div>
           </div>
         </div>
         <div class="row">
