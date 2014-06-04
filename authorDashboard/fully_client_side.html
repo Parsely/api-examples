@@ -25,7 +25,6 @@
 
         function buildUrl(base, endpoint, params) {
           var url = base + endpoint + "?" + $.param(params);
-          console.log("buildUrl: url --> " + url);
           url += "&callback=?";
           return url;
         }
@@ -73,6 +72,35 @@
           }
         }
 
+        function authorDetailCallback(data, statusCode) {
+          console.log(data);
+          if (data != undefined) {
+            $.each(data.data, function(i, datum) {
+              //TODO: Generate snazzy looking list of posts ranked by page views.
+              console.log('authorDetailCallback $.each: ' + i + ' ' + JSON.stringify(datum));
+              var postsDiv = $("#posts");
+              postsDiv.html("");
+              $.each(data.data, function(i, datum) {
+                  var thumb = "<a class='pull-left thumbnail' href='"+datum.url+"'><img src='" + datum.thumb_url_medium + "'></a>",
+                      title = "<div class='media-body'><h4>" + datum.title + "</h4></div>"
+                  postsDiv.append("<div class='media'>"+thumb+title+"</div>");
+              });
+            });
+          } else {
+            console.log("No API results");
+          }
+        }
+
+        function getPosts(key, secret, author, period_date, limit) {
+          author = author.replace(' ','%20');
+          var now = moment();
+          day = now.format('YYYY-MM-DD');
+          params = { apikey: key, secret: secret, limit: limit, period_start: day, period_end: day };
+          detailUrl = buildUrl(baseUrl, 'analytics/author/'+ author + '/detail', params);
+          console.log('detailUrl: ' + detailUrl);
+          $.getJSON(detailUrl, authorDetailCallback);
+        }
+
         // creds.js is used to hold values which would be 
         // specific to each publisher.
         // TODO: modify to use current author name.
@@ -84,7 +112,12 @@
         var apikey = creds.API_KEY;
         var secret = creds.API_SECRET;;
 
-        parselyAggregates.authorDaily(apikey, secret, author, graphBuilder);
+        //MAGIC NUMBER
+        // 90 days of history.
+        parselyAggregates.authorDaily(apikey, secret, author, 90, graphBuilder);
+        //MAGIC NUMBER
+        // 20 top posts.
+        getPosts(apikey, secret, author, 20);
 
       </script>
         <a href="https://github.com/Parsely/api-examples"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
@@ -106,7 +139,7 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-md-12" id="top posts">
+          <div class="col-md-12" id="posts">
               <p>top posts</p>
           </div>
         </div>

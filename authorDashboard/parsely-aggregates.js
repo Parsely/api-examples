@@ -1,14 +1,16 @@
 var parselyAggregates = (function () {
   var parselyAggregates = {};
 
-  parselyAggregates.authorDaily = function(key, secret, author, handler) {
+  // Uses async.js and jQuery
+  // Given an author and a number of day, returns a total of hits for that authors
+  // top posts for that day.
+  parselyAggregates.authorDaily = function(key, secret, author, days,  handler) {
     console.log('author Daily ' + author);
     author = author.replace('-','%20');
     author = author.replace(' ','%20');
 
-    // MAGIC MUMBER: days for which to calculate aggregate hits.
     // Calculate array of dates in YYYY-MM-DD format.
-    numberOfDays = 10;
+    numberOfDays = days;
     tasks = [];
     var now = moment();
     for (i = 0; i < numberOfDays; i++) {
@@ -16,7 +18,6 @@ var parselyAggregates = (function () {
       now.subtract('days',1);
       tasks.push(buildAPICall(key, secret, baseUrl, day, author));
     }
-    console.log('daysInPeriod' + tasks);
     async.parallel(tasks,handler);
   }
 
@@ -29,9 +30,6 @@ var parselyAggregates = (function () {
       // MAGIC NUMBER: number of posts to consider for daily totals: 20.
       params = { apikey: key, secret: secret, period_start: date,
                  period_end: date, limit: 20 };
-      // TODO watch out!  deal with blank jQuery object on
-      // those calls for the aggregate points.
-      //TODO: use $.getJSON instead of request.
       fullUrl = url + '?' + $.param(params) + '&callback=?';
       $.getJSON(fullUrl, function( data, statusCode) {
         aggregateApiCallback(data, statusCode, date, callback);
@@ -40,7 +38,6 @@ var parselyAggregates = (function () {
   }
 
   function aggregateApiCallback(data, statusCode, date, callback) {
-    console.log('AGGREGATE API REQUEST ERROR: statusCode ' + statusCode);
     if (!data) {
        console.log('AGGREGATE API REQUEST ERROR: no data');
        // TODO handle error
