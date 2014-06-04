@@ -19,7 +19,7 @@
     <body onload="">
       <script>
         // Parse.ly API root
-        var baseUrl = 'http://api.parsely.com/';
+        var baseUrl = 'http://api.parsely.com/v2/';
 
         //$.getJSON(url, callback);
 
@@ -66,7 +66,7 @@
             console.log(data);
             views = ['views'];
             x = ['x'];
-            $.each(data[0], function(i, datum) {
+            $.each(data, function(i, datum) {
               console.log('$.each: ' + i + ' ' + JSON.stringify(datum));
               views.push(datum.hits);
               x.push(datum.date);
@@ -86,8 +86,8 @@
         // NOTE: only use this method if you want all your 
         // /analytics data to be publicly available.
         // TODO: modify to use credentials for your site.
-        var apikey = creds.apikey;
-        var secret = creds.secret;;
+        var apikey = creds.API_KEY;
+        var secret = creds.API_SECRET;;
 
         parselyAggregates.authorDaily(apikey, secret, author, graphBuilder);
 

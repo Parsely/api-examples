@@ -25,42 +25,37 @@ var parselyAggregates = (function () {
   // the return function executes this callback as its final action.
   function buildAPICall(key, secret, baseUrl, date, author) {
     return function(callback) {
-      var url = baseUrl + '/analytics/author/' + author + '/detail';
+      var url = baseUrl + 'analytics/author/' + author + '/detail';
       // MAGIC NUMBER: number of posts to consider for daily totals: 20.
-      params = { apikey: key, secret: secret,
-                 period_start: date, period_end: date, limit: 20};
+      params = { apikey: key, secret: secret, period_start: date,
+                 period_end: date, limit: 20 };
       // TODO watch out!  deal with blank jQuery object on
       // those calls for the aggregate points.
       //TODO: use $.getJSON instead of request.
-      $.getJSON(url, params, function( data, stat) {
-        aggregateApiCallback(stat, data, date, callback);
+      fullUrl = url + '?' + $.param(params) + '&callback=?';
+      $.getJSON(fullUrl, function( data, statusCode) {
+        aggregateApiCallback(data, statusCode, date, callback);
       });
     }
   }
 
-  function aggregateApiCallback(err, res, body, date, callback) {
-    if (err) {
-       console.log('AGGREGATE API REQUEST ERROR');
+  function aggregateApiCallback(data, statusCode, date, callback) {
+    console.log('AGGREGATE API REQUEST ERROR: statusCode ' + statusCode);
+    if (!data) {
+       console.log('AGGREGATE API REQUEST ERROR: no data');
        // TODO handle error
-    } else if (res.statusCode == 200 ) {
-      if (body.code > 200) {
-        console.log('AGGREGATE API RESPONSE NOT OK');
-       // TODO handle error
-      } else {
-       // TODO handle OK
-        console.log('AGGREGATE API RESPONSE OK');
-        data = JSON.parse(body);
-        // Sum up _hits from each element
-        totalHits = 0;
-        for (i in data.data) {
-          totalHits += data.data[i]._hits;
-        }
-        result = {date: date, hits: totalHits};
-        callback(err, result)
+    } else if (statusCode == 'success') {
+      // TODO handle OK
+      console.log('AGGREGATE API RESPONSE OK');
+      // Sum up _hits from each element
+      totalHits = 0;
+      for (i in data.data) {
+        totalHits += data.data[i]._hits;
       }
+      result = {date: date, hits: totalHits};
+      callback(null, result)
     } else {
-      console.log('AGGREGATE API RESPONSE ERROR');
-      console.log(body);
+      console.log('AGGREGATE API RESPONSE ERROR ' + statusCode);
     }
   }
  
