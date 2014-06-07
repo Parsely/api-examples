@@ -73,7 +73,7 @@ function analyticsAuthors() {
 
 function sharesPosts() {
   var query = urllib.parse(this.req.url,true).query;
-  ParselyHandler('/shares/posts'type,this, query);
+  ParselyHandler('/shares/posts',this, query);
 }
 
 function analyticsAuthorDetail(that, author) {
