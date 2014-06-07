@@ -5,7 +5,7 @@ Demonstrations of what can be built with the Parse.ly API.
 
 HackingJournalism hackers, here's the data dump that we've collected for you:
 
-  # http://newshack.parsely.com
+  * http://newshack.parsely.com
 
 Our API docs can be found here: http://www.parsely.com/docs/
 
