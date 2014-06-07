@@ -5,7 +5,6 @@ var parselyAggregates = (function () {
   // Given an author and a number of day, returns a total of hits for that authors
   // top posts for that day.
   parselyAggregates.authorDaily = function(key, secret, author, days,  handler) {
-    console.log('author Daily ' + author);
     author = author.replace('-','%20');
     author = author.replace(' ','%20');
 

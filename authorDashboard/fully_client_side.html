@@ -48,18 +48,20 @@
               }
             },
             size: {
-              width: 1200,
+              width: 1000,
               height: 300
             },
             legend: {
               show: false
             },
             grid : {
+              x : { show: false },
               y : { show: true }
             },
             axis: {
               y: {
                 tick: {
+                  count: 5,
                   format: d3.format(',')
                 }
               },
@@ -87,6 +89,7 @@
           } else {
             console.log("graphBuilder: No API results");
           }
+          return graph;
         }
 
         function authorDetailCallback(data, statusCode) {
@@ -131,9 +134,11 @@
 
         //MAGIC NUMBER
         // 90 days of history.
-        parselyAggregates.authorDaily(apikey, secret, author, 60, function (err, data) {
-          graphBuilder(err, data);
+        histogram = {};
+        parselyAggregates.authorDaily(apikey, secret, author, 30, function (err, data) {
+          histogram = graphBuilder(err, data);
         });
+
         //MAGIC NUMBER
         // 20 top posts.
         getPosts(apikey, secret, author, '20');
