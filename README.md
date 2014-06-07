@@ -1,7 +1,13 @@
 api-examples
 ============
 
-Demonstrations of working with the Parse.ly API endpoints.
+Demonstrations of what can be built with the Parse.ly API.
+
+HackingJournalism hackers, here's the data dump that we've collected for you:
+
+  # http://newshack.parsely.com
+
+Our API docs can be found here: http://www.parsely.com/docs/
 
 The following endpoints are supported:
 
@@ -17,8 +23,8 @@ Install
 1. Clone this repo: `git clone git@github.com:Parsely/api-examples.git`
 1. Change to the directory: `cd api-examples`
 1. Install dependencies using npm: `npm install`
-1. Start the static file server: `node server.js`
 1. Configure your apikey & secret in `config/default.json` to use restricted endpoints, such as `/analytics`.
+1. Start the static file server: `node server.js`
 1. Visit `http://localhost:8080/` to get started.
 
 License
