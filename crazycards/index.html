@@ -63,37 +63,43 @@
           } else {
             console.log("No API results");
           }
-          var scanInterval = window.setInterval(function() {
+          barg = window.setInterval(function() {
             if (posts.isReady) {
               sortElements(posts);
+            } else {
+              console.log('Posts not ready');
             }
           },5000);
+          console.log('callback done');
         }
 
         // BUBBLE SORT FOR THE WIN!
         function sortElements(posts) {
-          prev = {};
-          prev.hits = posts.data[0].hits;
-          prev.mashes = posts.data[0].mashes; 
-          prev.id = posts.data[0].id;
+          a = {};
+          b = {};
           swapped = false;
-          for(i = 1; i < posts.data.length; i++) {
-            prevProduct = prev.hits * prev.mashes;
-            current = posts.data[i];
-            currentProduct = current.hits * current.mashes;
-            if (prevProduct > currentProduct) {
-              // correctly ordered, no swap needed.
-              prev = current;
-            } else {
-              //we gotta swap it!
-              swapped = true;
-              prevString = '#'+prev.id;
-              currString = '#'+current.id;
-              console.log(prevString + ' ' + prevProduct + ' <= ' + currString + ' ' + currentProduct);
-              $(prevString).swap($(currString));
-              // since we swapped, prev stays the same so that we can compare it again to the next element.
-              prev = prev;
-              break;
+          for (i = 0; i < posts.data.length; i++) {
+            console.log('checking i ' + i);
+            a = posts.data[i];
+            console.log('a');
+            console.log(a);
+            for (j = posts.data.length - 1; j > 0; j--) { 
+              console.log('checking j ' + j);
+              b = posts.data[j];
+              aProd = a.hits * a.mashes;
+              bProd = b.hits * b.mashes;
+              if (aProd > bProd) {
+                // correctly ordered, no swap needed.
+              } else {
+                //we gotta swap it!
+                swapped = true;
+                aString = '#'+a.id;
+                bString = '#'+b.id;
+                console.log(aString + ' ' + aProd + ' <= ' + bString + ' ' + bProd);
+                $(aString).swap($(bString));
+                // since we swapped, prev stays the same so that we can compare it again to the next element.
+                break;
+              }
             }
           }
           return swapped;
