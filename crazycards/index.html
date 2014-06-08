@@ -34,8 +34,6 @@
         }
 
         function callback(data, statusCode, posts) {
-          console.log('callback ');
-          console.log(posts);
           if (data != undefined) {
             $.each(data.data, function(i, datum) {
               //TODO: Generate snazzy looking list of posts ranked by page views.
@@ -70,7 +68,6 @@
               console.log('Posts not ready');
             }
           },5000);
-          console.log('callback done');
         }
 
         // BUBBLE SORT FOR THE WIN!
@@ -79,12 +76,8 @@
           b = {};
           swapped = false;
           for (i = 0; i < posts.data.length; i++) {
-            console.log('checking i ' + i);
             a = posts.data[i];
-            console.log('a');
-            console.log(a);
             for (j = posts.data.length - 1; j > 0; j--) { 
-              console.log('checking j ' + j);
               b = posts.data[j];
               aProd = a.hits * a.mashes;
               bProd = b.hits * b.mashes;
@@ -97,16 +90,21 @@
                 bString = '#'+b.id;
                 console.log(aString + ' ' + aProd + ' <= ' + bString + ' ' + bProd);
                 $(aString).swap($(bString));
+                //update positions
+                // TODO make this actually work.
+                $(aString).attr('id', 'temp');
+                $(bString).attr('id', a.id);
+                $('#temp').attr('id', b.id);
                 // since we swapped, prev stays the same so that we can compare it again to the next element.
-                break;
+                return;
               }
             }
           }
+          console.log('swapped');
           return swapped;
         } 
 
         function mashItUp(id) {
-          console.log('mashing ' + id + '!');
           for (i = 0; i < posts.data.length; i++) {
             if (posts.data[i].id == id) {
               posts.data[i].mashes++;
@@ -117,8 +115,6 @@
         }
 
         function getPosts(key, secret, limit, posts) {
-          console.log('getPosts');
-          console.log(posts);
           var now = moment();
           day = now.format('YYYY-MM-DD');
           params = { apikey: key,
@@ -139,7 +135,7 @@
 
         //MAGIC NUMBER
         // 20 top posts.
-        getPosts(apikey, secret, '15', posts);
+        getPosts(apikey, secret, '10', posts);
 
 
       </script>
