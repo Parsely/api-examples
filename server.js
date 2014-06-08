@@ -8,7 +8,7 @@ var http = require('http'),
     moment = require('moment'),
     winston = require('winston'),
     Sentry = require('winston-sentry'),
-    CREDS = require('config').creds,
+    creds = require('./creds.js'),
     static = require('node-static');
 var file = new(static.Server)('.');
 var argv = require('yargs')
@@ -17,26 +17,30 @@ var argv = require('yargs')
     .describe('p', 'port')
     .default('p', '8080')
     .argv
-
+console.log(util.inspect(creds,false,2,true));
 var host = 'localhost',
     port = argv.p,
-    API_KEY = process.env.API_KEY,
-    API_SECRET = process.env.API_SECRET,
-    SENTRY_DSN = process.env.SENTRY_DSN;
+    API_KEY = creds.API_KEY,
+    API_SECRET = creds.API_SECRET,
+    SENTRY_DSN = creds.SENTRY_DSN;
 
 var baseUrl = "http://api.parsely.com/v2";
 
 // Set up logging
 var logger = new winston.Logger({
-    transports: [
-        new winston.transports.Console({timestamp: true}),
-        new Sentry({
-                level: 'warn',
-                dsn: SENTRY_DSN,
-                patchGlobal: true,
-            })
-        ],
+    transports: [ new winston.transports.Console({timestamp: true})]
 });
+// Only use sentry if we have a proper DSN.
+if (creds.SENTRY_DSN!='not-configured') {
+  winston.add(
+    new Sentry({
+          level: 'warn',
+          dsn: SENTRY_DSN,
+          patchGlobal: true,
+        })
+  )
+}
+
 
 function getSecret(apikey) {
   return API_SECRET;
