@@ -1,0 +1,30 @@
+#div
+{
+}
+
+.card
+{
+  max-height: 330px;
+  min-height: 330px;
+  max-width: 200px;
+  float: left;
+  border: 1px solid #111;
+}
+.rank
+{
+  font-size: 2em;
+  float: left;
+  padding-right: 10px;
+}
+
+.hits
+{
+}
+
+.image
+{
+}
+
+.title
+{
+}

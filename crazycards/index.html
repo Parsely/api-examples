@@ -1,0 +1,101 @@
+<html>
+    <head>
+        <title>Parse.ly API examples</title>
+        <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/api.css" rel="stylesheet">
+        <link href="crazy.css" rel="stylesheet">
+        <script src="http://codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+        <!-- Load d3.js and c3.js -->
+        <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.4.8/d3.min.js" charset="utf-8"></script>
+ <!--
+       <script src="//cdnjs.cloudflare.com/ajax/libs/c3/0.1.29/c3.min.js"></script>
+-->
+        <script src='//cdnjs.cloudflare.com/ajax/libs/async/0.9.0/async.js'></script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.6.0/moment.js'></script>
+        <!-- deployment specific things stored in creds -->
+        <script src='creds.js'></script>
+        <!-- tools for aggregating many requests to Parse.ly API endpoints -->
+    </head>
+    <body onload="">
+      <script>
+        // Parse.ly API root
+        var baseUrl = 'http://api.parsely.com/v2/';
+
+        //$.getJSON(url, callback);
+
+        function buildUrl(base, endpoint, params) {
+          var url = base + endpoint + "?" + $.param(params);
+          url += "&callback=?";
+          return url;
+        }
+
+        function callback(data, statusCode) {
+          if (data != undefined) {
+            $.each(data.data, function(i, datum) {
+              //TODO: Generate snazzy looking list of posts ranked by page views.
+              var postsDiv = $("#posts");
+              postsDiv.html("");
+              $.each(data.data, function(i, datum) {
+                  console.log(datum);
+                  var num = i + 1;
+                  var rank = "<div class='rank'>"+num+"</div>"
+                      thumb = "<a class='thumbnail' href='"+datum.url+"'><img src='" + datum.image_url + "'></a>",
+                      hits = "<div style=''>views: "+datum._hits+"</div>",
+                      title = "<div class='media-body'><h4>" + datum.title + "</h4></div>",
+                      words = "<div class='words'>"+title+hits+"</div";
+                  postsDiv.append("<div class='card'>"+rank+thumb+words+"</div>");
+              });
+            });
+          } else {
+            console.log("No API results");
+          }
+        }
+
+        function getPosts(key, secret, limit) {
+          var now = moment();
+          day = now.format('YYYY-MM-DD');
+          params = { apikey: key,
+            secret: secret,
+            limit: limit };
+          apiUrl = buildUrl(baseUrl, 'analytics/posts', params);
+          $.getJSON(apiUrl, callback);
+        }
+
+        // NOTE: only use this method if you want all your 
+        // /analytics data to be publicly available.
+        // TODO: modify to use credentials for your site.
+        var apikey = creds.API_KEY;
+        var secret = creds.API_SECRET;;
+
+        //MAGIC NUMBER
+        // 20 top posts.
+        getPosts(apikey, secret, '20');
+
+      </script>
+        <a href="https://github.com/Parsely/api-examples"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
+        <!--  Add Input and buttons -->
+      <div class="container">
+        <div class="page header">
+          <h1>Crazy Cards!</h1>
+          <p class="lead">A dynamically generated landing page.</p> 
+          </p>
+          <p>Check the <a href="http://parsely.com/api/api_ref.html">API reference</a> for more details.</p>
+        </div>
+        <!-- page header-->
+        <div class="row"> <!-- row  -->
+        </div> <!-- row  -->
+        <hr>
+        <div class="row">
+          <div class="col-md-12">
+              <div id="histogram">
+              </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12" id="posts">
+          </div>
+        </div>
+      </div> <!-- class="container" -->
+    </body>
+</html>
