@@ -67,7 +67,7 @@
             } else {
               console.log('Posts not ready');
             }
-          },5000);
+          },2000);
         }
 
         // BUBBLE SORT FOR THE WIN!
@@ -77,10 +77,11 @@
           swapped = false;
           for (i = 0; i < posts.data.length; i++) {
             a = posts.data[i];
-            for (j = posts.data.length - 1; j > 0; j--) { 
+            for (j = posts.data.length - 1; j > i; j--) { 
               b = posts.data[j];
               aProd = a.hits * a.mashes;
               bProd = b.hits * b.mashes;
+              console.log('a b', aProd, bProd);
               if (aProd > bProd) {
                 // correctly ordered, no swap needed.
               } else {
@@ -95,13 +96,14 @@
                 $(aString).attr('id', 'temp');
                 $(bString).attr('id', a.id);
                 $('#temp').attr('id', b.id);
+                console.log('Changes');
                 // since we swapped, prev stays the same so that we can compare it again to the next element.
                 return;
               }
             }
           }
           console.log('swapped');
-          return swapped;
+          return;
         } 
 
         function mashItUp(id) {
