@@ -33,6 +33,22 @@
           return url;
         }
 
+        function getCard(post) {
+          var thumb = "<a class='thumbnail' href='"+post.url+"'><img src='" + post.image_url + "'></a>",
+            factor = post.hits * post.mashes;
+            factorHTML = "<div style='' id='factor'>factor: "+ factor +"</div>",
+            call = "'"+post.id+"'",
+            scriptyBit = 'onClick="mashItUp('+call+')"',
+            title = "<div class='media-body' " + scriptyBit + "><h4>" + post.title + "</h4></div>",
+            words = "<div class='words'>"+title+factorHTML+"</div",
+            data = "data-hits='"+post.hits+"' ",
+            data += " data-views='" + post.hits + "' ",
+            data += " data-mashes'" + post.mashes + "' ",
+            postHTML = "<div id='"+post.id+"' class='card' " + data + ">" + 
+                       thumb + words + "</div>";
+            return postHTML;
+        }
+
         function callback(data, statusCode, posts) {
           if (data != undefined) {
             $.each(data.data, function(i, datum) {
@@ -41,19 +57,11 @@
               postsDiv.html("");
               posts.data = []
               $.each(data.data, function(i, datum) {
-                  var num = i + 1;
-                  var rank = "<div class='rank'>"+num+"</div>"
-                      thumb = "<a class='thumbnail' href='"+datum.url+"'><img src='" + datum.image_url + "'></a>",
-                      hits = "<div style=''>views: "+datum._hits+"</div>",
-                      id = 'card' + i,
-                      call = "'"+id+"'",
-                      scriptyBit = 'onClick="mashItUp('+call+')"',
-                      title = "<div class='media-body' " + scriptyBit + "><h4>" + datum.title + "</h4></div>",
-                      words = "<div class='words'>"+title+hits+"</div",
-                  postsDiv.append("<div id='"+id+"'class='card'>"+rank+thumb+words+"</div>");
-                  datum.id = id;
                   datum.mashes = 1;
+                  datum.num = i;
+                  datum.id = 'card' + i,
                   datum.hits = parseInt(datum._hits, 10);
+                  postsDiv.append(getCard(datum));
                   posts.data.push(datum)
               });
               posts.isReady = true;
@@ -81,7 +89,6 @@
               b = posts.data[j];
               aProd = a.hits * a.mashes;
               bProd = b.hits * b.mashes;
-              console.log('a b', aProd, bProd);
               if (aProd > bProd) {
                 // correctly ordered, no swap needed.
               } else {
@@ -91,18 +98,33 @@
                 bString = '#'+b.id;
                 console.log(aString + ' ' + aProd + ' <= ' + bString + ' ' + bProd);
                 $(aString).swap($(bString));
-                //update positions
+                // Update DOM
                 // TODO make this actually work.
                 $(aString).attr('id', 'temp');
                 $(bString).attr('id', a.id);
                 $('#temp').attr('id', b.id);
-                console.log('Changes');
+                // Update JSON
+                temp = {};
+                console.log('array before');
+                console.log(posts.data);
+                for (key in a) {
+                  temp[key] = a[key];
+                }
+                for (key in b) {
+                  a[key] = b[key]
+                }
+                for (key in temp) {
+                  b[key] = temp[key]
+                }
+                console.log('array after');
+                console.log(posts.data);
+
                 // since we swapped, prev stays the same so that we can compare it again to the next element.
                 return;
               }
             }
           }
-          console.log('swapped');
+          console.log('no swap');
           return;
         } 
 
@@ -111,6 +133,7 @@
             if (posts.data[i].id == id) {
               posts.data[i].mashes++;
               console.log('post '+id+' mashes: '+posts.data[i].mashes);
+              // TODO update data-mashes and data-factor in DOM.
               break;
             }
           }
