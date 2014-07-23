@@ -508,16 +508,34 @@ window.PARSELY = window.PARSELY || {};
 }());
 
 (function () {
-    var console = PARSELY.console,
-        $LAB = PARSELY.$LAB,
+    //var console = PARSELY.console,
+    var $LAB = PARSELY.$LAB,
         cfgId = "parsely-cfg";
+
+   // Adding support for passed in credentials.
+   PARSELY.init = function(siteConfig) {
+      console.log("PARSELY.init");
+      if (!siteConfig.site) {
+        console.log("no configuration passed to init.");
+      } else {
+        console.log("site configuration passed to init: " + siteConfig.site);
+        PARSELY.site = siteConfig.site;
+      }
+      PARSELY.start(PARSELY.site);
+    }
+
+    PARSELY.start = function (apikey) {
+
     var root = document.getElementById(cfgId);
     // no configuration root, we can't do anything -- just return
-    if (!root) {
-        console.log("Parse.ly disabled because configuration root element missing: #" + cfgId);
+    if (!root && !apikey) {
+        console.log("Parse.ly disabled because configuration root element missing: #" + cfgId + " and init param not specified.");
         return;
+    } else {
+      PARSELY.site = apikey;
     }
-    // JavaScript Date API does not return zero-padded date strings, so we need this utility
+ 
+   // JavaScript Date API does not return zero-padded date strings, so we need this utility
     var pad = function(number) {
       if (number < 10) {
         return '0' + number;
@@ -533,8 +551,9 @@ window.PARSELY = window.PARSELY || {};
                         '-' + pad(date.getUTCMonth() + 1) +
                         '-' + pad(date.getUTCDate()) +
                         '-' + pad(date.getUTCHours());
-    var apikey = PARSELY.site || root.getAttribute('data-parsely-site'),
-        scheme = document.location.protocol + '//',
+    PARSELY.apikey = PARSELY.site || root.getAttribute('data-parsely-site');
+    console.log("PARSLEY.apikey: " + PARSELY.apikey);
+    var scheme = document.location.protocol + '//',
         // Amazon CloudFront has a separate host you need to use for a valid Amazon certificate
         defaultstatichost = scheme === 'https://' ? 'd1z2jf7jlzjs58.cloudfront.net' : 'static.parsely.com',
         statichost = PARSELY.statichost || defaultstatichost,
@@ -544,10 +563,12 @@ window.PARSELY = window.PARSELY || {};
         // our DNS entry beyond the TTL; by putting the dateString in a wildcard DNS entry, we
         // guarantee a one-hour TTL. DNS caches be damned!
         confighost = PARSELY.confighost || 'srv-' + dateString + '.config.parsely.com',
-        pixelhost = PARSELY.pixelhost || 'srv-' + dateString + '.pixel.parsely.com',
-        configprefix = scheme + confighost,
-        staticprefix = scheme + statichost,
-        pixelprefix = scheme + pixelhost;
+        pixelhost = PARSELY.pixelhost || 'srv-' + dateString + '.pixel.parsely.com';
+        PARSELY.pixelprefix = scheme + pixelhost;
+        PARSELY.configprefix = scheme + confighost;
+        PARSELY.staticprefix = scheme + statichost;
+        loader();
+    }
 
     // create entry point for async callback, invoked via JSON-P
     PARSELY.pInit = function(config) {
@@ -559,12 +580,12 @@ window.PARSELY = window.PARSELY || {};
         PARSELY.config = config;
         console.dir(config);
 
-        var bundle = staticprefix + config.bundle;
+        var bundle = PARSELY.staticprefix + config.bundle;
         console.log("Async loading bundle from " + bundle);
         PARSELY.urls = {
-            "static": staticprefix,
-            "config": configprefix,
-            "pixel": pixelprefix
+            "static": PARSELY.staticprefix,
+            "config": PARSELY.configprefix,
+            "pixel": PARSELY.pixelprefix
         };
         $LAB.script(bundle).wait(function() {
             console.log("Code bundle loaded");
@@ -579,7 +600,12 @@ window.PARSELY = window.PARSELY || {};
             console.log("Final load stage completed successfully");
         });
     };
-    console.log("Asynchronously loading configuration from " + configprefix);
-    // async load the config server; this will automatically assign a third-party cookie
-    $LAB.script(configprefix + '/config/' + apikey);
+
+    loader = function () {
+        console.log("Asynchronously loading configuration from " + PARSELY.configprefix);
+        // async load the config server; this will automatically assign a third-party cookie
+        $LAB.script(PARSELY.configprefix + '/config/' + PARSELY.apikey);
+    }
+
+    PARSELY.start();
 }());
